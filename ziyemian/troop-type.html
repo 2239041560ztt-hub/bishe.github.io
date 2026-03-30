@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>战鸣 · 中山甲兵 | 东方军事美学杂志</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;400;700;900&family=Inter:wght@100;300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- 统一引入样式文件 -->
+    <link rel="stylesheet" href="../css/unified-styles.css">
+    
+    <style>
+        /* 页面特定样式 */
+        :root {
+            --color-ink: var(--color-ink-light);
+            --color-gold: var(--color-gold-warm);
+            --color-light-gold: var(--color-gold-light);
+            --color-bg: var(--color-paper-dark);
+            --color-card: #161616;
+            --transition-reveal: all 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-ink);
+            font-family: var(--font-ui);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 封面区域：金石质感 */
+        .hero-section { height: 250vh; position: relative; }
+        .hero-sticky {
+            position: sticky;
+            top: 0; height: 100vh;
+            overflow: hidden;
+            background: #000;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .hero-bg-wrap {
+            position: absolute;
+            width: 100%; height: 100%;
+            z-index: 1;
+        }
+
+        .hero-bg-wrap img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            filter: grayscale(1) brightness(0.4) contrast(1.2);
+            transform: scale(1.2);
+        }
+
+        /* 遮罩：营造烽烟渐隐感 */
+        .smoke-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 20%, var(--color-bg) 90%);
+            z-index: 2;
+        }
+
+        .hero-title-group {
+            position: absolute;
+            z-index: 10;
+            text-align: center;
+            color: var(--color-gold);
+            pointer-events: none;
+        }
+
+        .hero-title-group span {
+            display: block;
+            font-size: 0.8rem;
+            letter-spacing: 12px;
+            margin-bottom: 25px;
+            color: var(--color-light-gold);
+            text-transform: uppercase;
+        }
+
+        .hero-title-group h1 {
+            font-family: var(--font-title-cn);
+            font-size: 12vw;
+            font-weight: 900;
+            letter-spacing: 2vw;
+            line-height: 1;
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+        }
+        .hero-title-group h1 small {
+            font-size: 4vw;
+            font-weight: 400;
+            letter-spacing: 1vw;
+            display: block;
+            margin-top: 2vw;
+        }
+
+        /* 内容板块 */
+        .content-container { position: relative; z-index: 20; background: var(--color-bg); }
+
+        .magazine-section {
+            min-height: 100vh;
+            padding: 15vh 5vw;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 20px;
+            border-top: 1px solid rgba(212, 175, 55, 0.1);
+        }
+
+        .visual-container {
+            grid-column: 2 / 12;
+            height: 75vh;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        /* 金石遮罩 */
+        .gold-dust-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(20px);
+            z-index: 2;
+            transition: var(--transition-reveal);
+        }
+
+        .visual-container.melted .gold-dust-overlay {
+            opacity: 0;
+            backdrop-filter: blur(0px);
+        }
+
+        .visual-container img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            filter: grayscale(0.5) sepia(0.2);
+            transform: scale(1.1);
+            transition: var(--transition-reveal);
+        }
+
+        .visual-container.melted img { transform: scale(1); filter: grayscale(0) sepia(0); }
+
+        .info-block {
+            grid-column: 3 / 11;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-top: 5vh;
+        }
+
+        .info-block h2 {
+            font-family: var(--font-title-cn);
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--color-gold);
+            line-height: 1;
+        }
+
+        .info-block .meta { max-width: 500px; padding-top: 10px; }
+
+        .info-block .tag {
+            font-size: 0.75rem;
+            letter-spacing: 4px;
+            color: var(--color-light-gold);
+            display: block;
+            margin-bottom: 20px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--color-gold);
+            padding-bottom: 5px;
+            width: fit-content;
+        }
+
+        .info-block p {
+            font-size: 1rem;
+            line-height: 2;
+            color: #b5b5b5;
+            font-weight: 300;
+            text-align: justify;
+        }
+        /* 兵种搭配提示样式 */
+        .tactics-tip {
+            margin-top: 15px;
+            padding: 10px;
+            border-left: 2px solid var(--color-gold);
+            font-size: 0.9rem;
+            color: var(--color-light-gold);
+            opacity: 0.9;
+        }
+
+        /* 回到顶部 */
+        .back-to-top {
+            position: fixed;
+            bottom: 40px; right: 40px;
+            width: 50px; height: 50px;
+            border: 1px solid var(--color-gold);
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; opacity: 0; transition: 0.5s;
+            z-index: 1000; background: var(--color-bg);
+            color: var(--color-gold);
+        }
+        .back-to-top.visible { opacity: 1; }
+
+        @media (max-width: 1024px) {
+            .info-block { flex-direction: column; grid-column: 2 / 12; }
+            .info-block h2 { font-size: 3.5rem; margin-bottom: 20px; }
+            .visual-container { height: 50vh; }
+        }
+        /* 移动端文字适配 */
+        @media (max-width: 768px) {
+            .info-block h2 { font-size: 2.5rem; }
+            .info-block p { line-height: 1.8; font-size: 0.95rem; }
+            .tactics-tip { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 统一导航栏：修正战术战法链接命名错误 -->
+    <nav class="magazine-nav">
+        <a href="../pages/military.html" class="back-home">返回</a>
+        <div class="season-nav">
+            <a href="battle.html">经典战役</a>
+            <a href="spring.html">兵力规模</a>
+            <a href="troop-type.html" class="active">兵种构成</a>
+            <a href="weapon-melee.html">近战兵器</a>
+            <a href="weapon-ranged.html">远程兵器</a>
+            <a href="tactics.html">战术战法</a>
+        </div>
+    </nav>
+
+    <div class="back-to-top" id="backToTop"><i class="fas fa-chevron-up"></i></div>
+
+    <section class="hero-section">
+        <div class="hero-sticky">
+            <div class="hero-bg-wrap">
+                <img id="heroImg" src="../assets/images/military/1.png" alt="中山甲兵：鲜虞轻骑为核心的兵种体系">
+            </div>
+            <div class="smoke-overlay" id="smokeOverlay"></div>
+            <div class="hero-title-group" id="heroTitle">
+                <span>Military Structure / 01</span>
+                <h1>中山甲兵</h1>
+            </div>
+        </div>
+    </section>
+
+    <div class="content-container">
+        <!-- 重装车兵：辅助核心 -->
+        <section class="magazine-section">
+            <div class="visual-container trigger-melt">
+                <div class="gold-dust-overlay"></div>
+                <img src="../assets/images/military/2.png" alt="中山国重装车兵：错金银战车复原图（平原冲击+机动堡垒）">
+            </div>
+            <div class="info-block reveal">
+                <h2>车兵</h2>
+                <div class="meta">
+                    <span class="tag">HEAVY WAR CHARIOTS / 重装壁垒 | 平原压制</span>
+                    <p>“千乘之国”中山，重装车兵是其王权与阵地战的核心支撑。中山车马器以繁复的错金银工艺闻名，每乘战车配2-3名甲士、若干步卒，适配山地与平原双重作战场景；作为轻骑兵的辅助力量，战车在平原地区既是攻坚冲击的核心，也是掩护骑兵迂回的移动壁垒，成为中山抗衡中原诸国的重装基础。</p>
+                    <div class="tactics-tip">「战术搭配」：车兵正面列阵牵制敌军主力，为轻骑兵侧后奇袭创造战机</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 轻骑兵：核心战力 -->
+        <section class="magazine-section">
+            <div class="visual-container trigger-melt">
+                <div class="gold-dust-overlay"></div>
+                <img src="../assets/images/military/3.png" alt="中山国轻骑兵：鲜虞胡服骑射复原（太行奇袭核心）">
+            </div>
+            <div class="info-block reveal">
+                <h2>骑兵</h2>
+                <div class="meta">
+                    <span class="tag">LIGHT CAVALRY / 鲜虞遗风 | 核心突击</span>
+                    <p>中山轻骑兵源出北方鲜虞游牧部落，是整个军事体系的绝对核心——早于赵武灵王胡服骑射改革，便已融合中原甲胄防护与游牧骑射灵活的双重优势。他们在太行山脉与华北平原交界地带，以闪电般的机动奇袭令赵、燕等大国生畏，搭配重装车兵的正面牵制、山地步兵的地形配合，构成中山最具威慑力的战术组合。</p>
+                    <div class="tactics-tip">「战术搭配」：轻骑兵为主力实施迂回包抄、快速穿插，车兵/步兵巩固战果</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 弩兵：，补充战术定位 -->
+        <section class="magazine-section">
+            <div class="visual-container trigger-melt">
+                <div class="gold-dust-overlay"></div>
+                <img src="../assets/images/military/4.png" alt="中山国弩兵：带望山瞄准装置的青铜弩阵（远程支援）">
+            </div>
+            <div class="info-block reveal">
+                <h2>弩兵</h2>
+                <div class="meta">
+                    <span class="tag">CROSSBOWMEN / 青铜工艺 | 远程支援</span>
+                    <p>中山国拥有极高水平的青铜铸造技术，其弩兵配备的弩机带“望山”瞄准装置，射程可达200步，远超同期中原诸国制式弩。作为轻骑兵的远程补充，弩兵常部署于车兵阵列后方或步兵阵地中，在骑兵突击前实施远程压制，击穿敌军重型铁甲，为轻骑兵的近身突击扫清障碍。</p>
+                    <div class="tactics-tip">「战术搭配」：弩兵远程压制敌军阵型，掩护轻骑兵快速接近敌军侧翼</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 山地步兵：辅助核心 -->
+        <section class="magazine-section">
+            <div class="visual-container trigger-melt">
+                <div class="gold-dust-overlay"></div>
+                <img src="../assets/images/military/5.png" alt="中山国山地步兵：执戟之士（太行山地防御核心）">
+            </div>
+            <div class="info-block reveal">
+                <h2>步卒</h2>
+                <div class="meta">
+                    <span class="tag">MOUNTAIN INFANTRY / 执戟之士 | 地形掌控</span>
+                    <p>中山山地步兵由坚韧的太行山地族群构成，是轻骑兵的重要辅助力量——擅长近身格斗与长矛方阵，多装备“犀兕之甲”，配合长戟与短剑，在复杂山地地形中如履平地。他们既可以固守隘口掩护轻骑兵机动，也能在平原战场填补车兵与骑兵的间隙，是中山军最坚实的战术基座。</p>
+                    <div class="tactics-tip">「战术搭配」：步兵占据山地/隘口巩固防线，轻骑兵依托步兵阵地实施机动反击</div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 修正版权信息，补充快捷导航 -->
+    <footer style="padding: 15vh 0; background: #000; color: var(--color-gold); text-align: center; border-top: 1px solid var(--color-gold);">
+        <p style="letter-spacing: 15px; opacity: 0.5; font-size: 0.7rem; margin-bottom: 20px;">ZHONGSHAN MILITARY AESTHETICS</p>
+        <h3 style="font-family: var(--serif); font-size: 1.8rem;">金戈铁马 · 虽陨犹存</h3>
+        <div style="margin: 30px 0; font-size: 0.8rem; opacity: 0.7;">
+            <a href="#top" style="color: var(--color-light-gold); margin: 0 10px;">返回顶部</a>
+            <a href="#troop-index" style="color: var(--color-light-gold); margin: 0 10px;">兵种索引</a>
+        </div>
+      
+    </footer>
+
+    <script>
+        const heroImg = document.getElementById('heroImg');
+        const smokeOverlay = document.getElementById('smokeOverlay');
+        const heroTitle = document.getElementById('heroTitle');
+        const backToTop = document.getElementById('backToTop');
+
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            const winH = window.innerHeight;
+
+            // 1. 封面特效：压迫感缩放（注释说明特效终止节点）
+            // 滚动至1.5倍视口高度时，特效达到最大值并停止
+            const heroProgress = Math.min(scrollY / (winH * 1.5), 1);
+            const scale = 1.2 - (heroProgress * 0.2);
+            heroImg.style.transform = `scale(${scale})`;
+            smokeOverlay.style.opacity = 0.6 + (heroProgress * 0.4);
+            heroTitle.style.transform = `translateY(${heroProgress * 80}px)`;
+            heroTitle.style.opacity = 1 - (heroProgress * 1.2);
+
+            // 2. 回到顶部
+            if (scrollY > winH) backToTop.classList.add('visible');
+            else backToTop.classList.remove('visible');
+        });
+
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // 金石揭幕观察器
+        const meltObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('melted');
+                }
+            });
+        }, { threshold: 0.3 });
+
+        document.querySelectorAll('.trigger-melt').forEach(el => meltObserver.observe(el));
+
+        // 文案揭幕
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(40px)';
+            el.style.transition = 'all 1.6s cubic-bezier(0.16, 1, 0.3, 1)';
+            revealObserver.observe(el);
+        });
+
+        // 低性能设备特效降级（简单判断：屏幕分辨率+处理器核心数）
+        const isLowPerformance = window.screen.width < 768 && navigator.hardwareConcurrency < 4;
+        if (isLowPerformance) {
+            // 关闭封面缩放/模糊特效
+            heroImg.style.transform = 'scale(1)';
+            smokeOverlay.style.opacity = 1;
+            // 关闭金石揭幕的模糊特效
+            document.querySelectorAll('.gold-dust-overlay').forEach(el => {
+                el.style.backdropFilter = 'none';
+            });
+        }
+    </script>
+</body>
+</html>

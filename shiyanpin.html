@@ -1,0 +1,1077 @@
+\<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>战国中山·文物拼图</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: var(--color-gold-warm);
+            --gold-light: #e8d08a;
+            --gold-dark: #8a6d20;
+            --ink: var(--color-paper-dark);
+            --paper: #f5ede0;
+            --paper-dark: #e8dcc8;
+            --red-seal: #8b1a1a;
+            --bronze: #6b4c2a;
+            --bronze-light: #9b7040;
+            --shadow: rgba(26,20,16,0.35);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Noto Serif SC', 'STKaiti', serif;
+            background-color: var(--ink);
+            color: var(--ink);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background texture */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: 
+                radial-gradient(ellipse at 20% 20%, rgba(193,160,103,0.07) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(107,76,42,0.1) 0%, transparent 50%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect width='60' height='60' fill='none'/%3E%3Cpath d='M0 0h60v60H0z' fill='none' stroke='%23C1A067' stroke-width='0.15' stroke-opacity='0.12'/%3E%3Cpath d='M30 0v60M0 30h60' stroke='%23C1A067' stroke-width='0.08' stroke-opacity='0.08'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .page-wrapper {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 0 16px 60px;
+        }
+
+        /* Header */
+        .site-header {
+            width: 100%;
+            max-width: 860px;
+            text-align: center;
+            padding: 40px 0 30px;
+            position: relative;
+        }
+
+        .header-ornament {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            margin-bottom: 12px;
+        }
+
+        .ornament-line {
+            height: 1px;
+            width: 80px;
+            background: linear-gradient(to right, transparent, var(--gold));
+        }
+        .ornament-line.right {
+            background: linear-gradient(to left, transparent, var(--gold));
+        }
+
+        .ornament-diamond {
+            width: 8px; height: 8px;
+            background: var(--gold);
+            transform: rotate(45deg);
+        }
+
+        h1 {
+            font-family: 'Ma Shan Zheng', 'STKaiti', serif;
+            font-size: clamp(28px, 5vw, 46px);
+            color: var(--gold);
+            letter-spacing: 0.15em;
+            text-shadow: 0 2px 20px rgba(193,160,103,0.4), 0 0 60px rgba(193,160,103,0.15);
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: rgba(193,160,103,0.55);
+            letter-spacing: 0.4em;
+            margin-top: 8px;
+        }
+
+        .header-border {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--gold-dark), var(--gold), var(--gold-dark), transparent);
+            margin-top: 24px;
+        }
+
+        /* === SELECTION SCREEN === */
+        #selection-screen {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 860px;
+            width: 100%;
+            padding: 10px 0;
+            animation: fadeIn 0.8s ease both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .relic-card {
+            cursor: pointer;
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(201,168,76,0.3);
+            background: rgba(245,237,224,0.04);
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeIn 0.6s ease both;
+        }
+
+        .relic-card:nth-child(1) { animation-delay: 0.05s; }
+        .relic-card:nth-child(2) { animation-delay: 0.1s; }
+        .relic-card:nth-child(3) { animation-delay: 0.15s; }
+        .relic-card:nth-child(4) { animation-delay: 0.2s; }
+        .relic-card:nth-child(5) { animation-delay: 0.25s; }
+        .relic-card:nth-child(6) { animation-delay: 0.3s; }
+
+        .relic-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--gold);
+            box-shadow: 0 12px 40px rgba(201,168,76,0.25), 0 0 0 1px rgba(201,168,76,0.4);
+        }
+
+        .relic-card-img-wrap {
+            position: relative;
+            overflow: hidden;
+            height: 160px;
+        }
+
+        .relic-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s ease;
+            filter: sepia(15%) contrast(1.05);
+        }
+
+        .relic-card:hover img { transform: scale(1.06); }
+
+        .relic-card-img-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 40%, rgba(26,20,16,0.7));
+        }
+
+        .relic-card-info {
+            padding: 12px 14px;
+            background: linear-gradient(to bottom, rgba(26,20,16,0.85), rgba(26,20,16,0.95));
+        }
+
+        .relic-card-name {
+            font-size: 14px;
+            color: var(--gold-light);
+            letter-spacing: 0.1em;
+            text-align: center;
+        }
+
+        .relic-card-hint {
+            font-size: 11px;
+            color: rgba(201,168,76,0.4);
+            text-align: center;
+            margin-top: 4px;
+            letter-spacing: 0.05em;
+        }
+
+        .relic-card-overlay {
+            position: absolute;
+            top: 10px; right: 10px;
+            background: rgba(201,168,76,0.85);
+            color: var(--ink);
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            padding: 3px 8px;
+            border-radius: 2px;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        /* === GAME SCREEN === */
+        #game-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 700px;
+            animation: fadeIn 0.5s ease both;
+        }
+
+        .game-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 14px 20px;
+            background: rgba(245,237,224,0.05);
+            border: 1px solid rgba(201,168,76,0.2);
+            border-radius: 4px;
+        }
+
+        #back-btn {
+            font-family: 'Noto Serif SC', serif;
+            background: none;
+            border: 1px solid rgba(201,168,76,0.4);
+            color: var(--gold);
+            padding: 6px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            letter-spacing: 0.1em;
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+        #back-btn:hover { background: rgba(201,168,76,0.1); }
+
+        .game-title-area { text-align: center; }
+        .game-relic-name {
+            font-size: 18px;
+            color: var(--gold);
+            letter-spacing: 0.15em;
+        }
+        .game-relic-sub {
+            font-size: 11px;
+            color: rgba(201,168,76,0.45);
+            margin-top: 3px;
+            letter-spacing: 0.25em;
+        }
+
+        .move-counter {
+            text-align: right;
+        }
+        .move-label {
+            font-size: 11px;
+            color: rgba(201,168,76,0.45);
+            letter-spacing: 0.2em;
+        }
+        .move-count {
+            font-size: 24px;
+            color: var(--gold);
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        /* Difficulty selector */
+        .difficulty-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .diff-btn {
+            font-family: 'Noto Serif SC', serif;
+            padding: 6px 18px;
+            border: 1px solid rgba(201,168,76,0.3);
+            background: none;
+            color: rgba(201,168,76,0.55);
+            cursor: pointer;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+        .diff-btn:hover, .diff-btn.active {
+            background: rgba(201,168,76,0.12);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        /* Board wrapper with preview */
+        .board-area {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .preview-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-label {
+            font-size: 11px;
+            color: rgba(201,168,76,0.45);
+            letter-spacing: 0.2em;
+        }
+
+        .preview-img {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border: 1px solid rgba(201,168,76,0.4);
+            border-radius: 2px;
+            filter: sepia(10%) contrast(1.05);
+        }
+
+        /* Puzzle Board */
+        #puzzle-board {
+            display: grid;
+            gap: 3px;
+            background: rgba(201,168,76,0.15);
+            border: 3px solid var(--gold-dark);
+            border-radius: 4px;
+            box-shadow: 0 0 0 1px rgba(201,168,76,0.3), 0 20px 60px rgba(0,0,0,0.5), inset 0 0 30px rgba(0,0,0,0.2);
+            padding: 3px;
+            position: relative;
+        }
+
+        #puzzle-board::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border: 1px solid rgba(201,168,76,0.15);
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .tile {
+            cursor: grab;
+            background-size: cover;
+            border-radius: 2px;
+            position: relative;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.15s ease;
+            overflow: hidden;
+        }
+
+        .tile::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 2px;
+            pointer-events: none;
+            transition: background 0.15s;
+        }
+
+        .tile:hover::after { background: rgba(201,168,76,0.12); }
+        .tile:active { cursor: grabbing; transform: scale(0.97); }
+
+        .tile.drag-over::after { background: rgba(201,168,76,0.25); box-shadow: inset 0 0 0 2px var(--gold); }
+
+        .tile.drag-source { opacity: 0.45; transform: scale(0.95); }
+
+        /* Win overlay */
+        #win-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(26,20,16,0.88);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.4s ease;
+        }
+
+        #win-overlay.show { display: flex; }
+
+        .win-panel {
+            background: linear-gradient(145deg, #1e180f, #14100a);
+            border: 1px solid var(--gold-dark);
+            border-radius: 8px;
+            padding: 48px 56px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 0 0 1px rgba(201,168,76,0.15), 0 40px 80px rgba(0,0,0,0.6);
+            position: relative;
+            animation: scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.7); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .win-panel::before {
+            content: '✦';
+            position: absolute;
+            top: -14px; left: 50%;
+            transform: translateX(-50%);
+            color: var(--gold);
+            font-size: 24px;
+            background: #1e180f;
+            padding: 0 10px;
+        }
+
+        .win-title {
+            font-family: 'Ma Shan Zheng', serif;
+            font-size: 32px;
+            color: var(--gold);
+            text-shadow: 0 0 20px rgba(201,168,76,0.5);
+            margin-bottom: 8px;
+        }
+
+        .win-sub {
+            font-size: 13px;
+            color: rgba(201,168,76,0.55);
+            letter-spacing: 0.2em;
+            margin-bottom: 24px;
+        }
+
+        .win-moves {
+            font-size: 15px;
+            color: rgba(245,237,224,0.7);
+            margin-bottom: 28px;
+        }
+        .win-moves span { color: var(--gold); font-size: 22px; font-weight: 700; }
+
+        .win-btn {
+            font-family: 'Noto Serif SC', serif;
+            display: block;
+            width: 100%;
+            padding: 13px;
+            margin-bottom: 10px;
+            border: 1px solid var(--gold-dark);
+            cursor: pointer;
+            font-size: 14px;
+            letter-spacing: 0.15em;
+            border-radius: 3px;
+            transition: all 0.25s;
+        }
+
+        .win-btn.primary {
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+            color: var(--ink);
+            font-weight: 700;
+        }
+        .win-btn.primary:hover { filter: brightness(1.1); }
+
+        .win-btn.secondary {
+            background: none;
+            color: var(--gold);
+        }
+        .win-btn.secondary:hover { background: rgba(201,168,76,0.1); }
+
+        /* Status bar */
+        #status-bar {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: rgba(201,168,76,0.4);
+        }
+
+        #status-text {
+            font-size: 12px;
+            color: rgba(201,168,76,0.5);
+            letter-spacing: 0.15em;
+        }
+
+        /* Decorative seal */
+        .seal {
+            font-family: 'Ma Shan Zheng', serif;
+            position: absolute;
+            right: 0; top: 0;
+            width: 44px; height: 44px;
+            background: var(--red-seal);
+            color: #f5ede0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+            text-align: center;
+            line-height: 1.3;
+            border-radius: 2px;
+            opacity: 0.85;
+            writing-mode: vertical-rl;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            #selection-screen { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .board-area { flex-direction: column; align-items: center; }
+            .preview-panel { flex-direction: row; gap: 16px; }
+            .preview-img { width: 60px; height: 60px; }
+            .win-panel { padding: 36px 28px; margin: 20px; }
+        }
+
+        @media (max-width: 360px) {
+            #selection-screen { grid-template-columns: 1fr 1fr; }
+        }
+
+        /* === CONFIRM / 3D BUTTON AREA === */
+        #confirm-area {
+            margin-top: 16px;
+            min-height: 52px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Confirm button */
+        .confirm-btn {
+            font-family: 'Noto Serif SC', serif;
+            background: none;
+            border: 1px solid rgba(201,168,76,0.5);
+            color: var(--gold);
+            padding: 0;
+            cursor: pointer;
+            border-radius: 3px;
+            overflow: hidden;
+            transition: border-color 0.25s, box-shadow 0.25s;
+            animation: fadeIn 0.4s ease both;
+        }
+
+        .confirm-btn:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 16px rgba(201,168,76,0.2);
+        }
+
+        .confirm-btn-inner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 28px;
+            font-size: 14px;
+            letter-spacing: 0.15em;
+        }
+
+        .confirm-icon {
+            font-size: 16px;
+            opacity: 0.7;
+        }
+
+        /* Wrong shake */
+        @keyframes wrongShake {
+            0%,100% { transform: translateX(0); }
+            20%     { transform: translateX(-6px); }
+            40%     { transform: translateX(6px); }
+            60%     { transform: translateX(-4px); }
+            80%     { transform: translateX(4px); }
+        }
+        .confirm-btn.wrong {
+            border-color: #c0392b;
+            color: #e74c3c;
+            animation: wrongShake 0.4s ease;
+        }
+
+        /* 3D button */
+        .view3d-btn {
+            font-family: 'Noto Serif SC', serif;
+            position: relative;
+            background: linear-gradient(135deg, #1c1508 0%, #2e2010 50%, #1c1508 100%);
+            border: 1px solid var(--gold-dark);
+            color: var(--gold-light);
+            padding: 0;
+            cursor: pointer;
+            border-radius: 3px;
+            overflow: hidden;
+            box-shadow: 0 0 0 1px rgba(201,168,76,0.15), 0 8px 30px rgba(0,0,0,0.4);
+            animation: fadeIn 0.5s ease both;
+            transition: box-shadow 0.3s, border-color 0.3s;
+        }
+
+        .view3d-btn:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 1px rgba(201,168,76,0.3), 0 8px 40px rgba(201,168,76,0.3);
+        }
+
+        /* Shimmer sweep */
+        .view3d-shimmer {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(105deg, transparent 35%, rgba(201,168,76,0.18) 50%, transparent 65%);
+            background-size: 200% 100%;
+            animation: shimmerSweep 2.4s ease infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shimmerSweep {
+            0%   { background-position: 200% center; }
+            100% { background-position: -200% center; }
+        }
+
+        .view3d-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 13px 30px;
+            font-size: 14px;
+            letter-spacing: 0.18em;
+        }
+
+        .view3d-icon {
+            font-size: 20px;
+            color: var(--gold);
+            animation: spinHex 4s linear infinite;
+        }
+
+        @keyframes spinHex {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+        .view3d-label { font-weight: 600; }
+
+        .view3d-arrow {
+            font-size: 18px;
+            opacity: 0.7;
+            transition: transform 0.2s;
+        }
+        .view3d-btn:hover .view3d-arrow { transform: translateX(4px); }
+
+        /* Board glow on win */
+        #puzzle-board.win-glow {
+            box-shadow: 0 0 0 2px var(--gold), 0 0 40px rgba(201,168,76,0.4), 0 20px 60px rgba(0,0,0,0.5);
+            transition: box-shadow 0.5s ease;
+        }
+
+        /* Shuffle animation */
+        @keyframes shufflePop {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.93); }
+            100% { transform: scale(1); }
+        }
+
+        .tile.shuffle-anim { animation: shufflePop 0.15s ease; }
+
+        /* Shine effect on solved tiles */
+        @keyframes tileShine {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-wrapper">
+    <header class="site-header">
+        <div class="header-ornament">
+            <div class="ornament-line"></div>
+            <div class="ornament-diamond"></div>
+            <div class="ornament-line right"></div>
+        </div>
+        <h1>战国中山·文物拼图</h1>
+        <p class="subtitle">ZHONGSHAN KINGDOM · CULTURAL RELICS PUZZLE</p>
+        <div class="header-border"></div>
+    </header>
+
+    <!-- Selection screen -->
+    <div id="selection-screen"></div>
+
+    <!-- Game screen -->
+    <div id="game-screen">
+        <div class="game-header">
+            <button id="back-btn" onclick="goBack()">← 返回</button>
+            <div class="game-title-area">
+                <div class="game-relic-name" id="game-relic-name">—</div>
+                <div class="game-relic-sub">拖动方块还原文物</div>
+            </div>
+            <div class="move-counter">
+                <div class="move-label">步数</div>
+                <div class="move-count" id="move-count">0</div>
+            </div>
+        </div>
+
+        <div class="difficulty-bar">
+            <button class="diff-btn active" data-grid="3" onclick="setDifficulty(3, this)">三×三</button>
+            <button class="diff-btn" data-grid="4" onclick="setDifficulty(4, this)">四×四</button>
+            <button class="diff-btn" data-grid="5" onclick="setDifficulty(5, this)">五×五</button>
+        </div>
+
+        <div class="board-area">
+            <div class="preview-panel">
+                <div class="preview-label">原图</div>
+                <img class="preview-img" id="preview-img" src="" alt="原图预览">
+            </div>
+
+            <div>
+                <div id="puzzle-board"></div>
+                <div id="status-bar">
+                    <div class="status-dot" id="status-dot"></div>
+                    <div id="status-text">拖动方块，交换位置，还原文物</div>
+                </div>
+                <div id="confirm-area">
+                    <button id="confirm-btn" class="confirm-btn hidden" onclick="confirmAnswer()">
+                        <span class="confirm-btn-inner">
+                            <span class="confirm-icon">◈</span>
+                            <span class="confirm-label">确认答案</span>
+                        </span>
+                    </button>
+                    <button id="view3d-btn" class="view3d-btn hidden" onclick="goTo3D()">
+                        <span class="view3d-shimmer"></span>
+                        <span class="view3d-inner">
+                            <span class="view3d-icon">⬡</span>
+                            <span class="view3d-label">查看文物 3D 展示</span>
+                            <span class="view3d-arrow">→</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<script>
+const relics = [
+    { id: 1, name: "四龙四凤方案", era: "战国时期", url: "../assets/images/craft/123.png" },
+    { id: 2, name: "中山王方壶",   era: "战国时期", url: "https://r.jina.ai/i/81d33198083c48f2979cf3ca4e84be1b" },
+    { id: 3, name: "中山王鼎",     era: "战国时期", url: "https://r.jina.ai/i/063806294723460897f22312d8a0f96d" },
+    { id: 4, name: "虎噬鹿屏风座", era: "战国时期", url: "https://r.jina.ai/i/9c926955b206411d9f82662c199589df" },
+    { id: 5, name: "十五连盏灯",   era: "战国时期", url: "https://r.jina.ai/i/847372709e3745289945a05d8f6d5494" },
+    { id: 6, name: "双翼神兽",     era: "战国时期", url: "https://r.jina.ai/i/83949826017042a996f6e2c380720615" }
+];
+
+let currentRelic = null;
+let pieces = [];
+let gridSize = 3;
+let moveCount = 0;
+let tileSize = 100;
+let dragFrom = null;
+
+// Build selection screen
+const selScreen = document.getElementById('selection-screen');
+relics.forEach((relic, i) => {
+    const card = document.createElement('div');
+    card.className = 'relic-card';
+    card.innerHTML = `
+        <div class="relic-card-img-wrap">
+            <img src="${relic.url}" alt="${relic.name}" loading="lazy">
+        </div>
+        <div class="relic-card-info">
+            <div class="relic-card-name">${relic.name}</div>
+            <div class="relic-card-hint">${relic.era} · 点击开始拼图</div>
+        </div>
+    `;
+    card.onclick = () => startPuzzle(relic);
+    selScreen.appendChild(card);
+});
+
+function setDifficulty(size, btn) {
+    gridSize = size;
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // Adjust tile size based on grid
+    if (size === 3) tileSize = 108;
+    else if (size === 4) tileSize = 82;
+    else tileSize = 66;
+
+    if (currentRelic) initPuzzle();
+}
+
+function startPuzzle(relic) {
+    currentRelic = relic;
+    document.getElementById('game-relic-name').textContent = relic.name;
+    document.getElementById('preview-img').src = relic.url;
+    selScreen.style.display = 'none';
+    document.getElementById('game-screen').style.display = 'flex';
+    initPuzzle();
+}
+
+function initPuzzle() {
+    moveCount = 0;
+    puzzleSolved = false;
+    wrongCount = 0;
+    updateMoveCount();
+    document.getElementById('status-text').textContent = '拖动方块，交换位置，还原文物';
+    document.getElementById('status-dot').style.background = 'rgba(201,168,76,0.4)';
+    document.getElementById('confirm-btn').classList.add('hidden');
+    document.getElementById('view3d-btn').classList.add('hidden');
+    document.getElementById('puzzle-board').classList.remove('win-glow');
+    
+    const n = gridSize * gridSize;
+    pieces = [...Array(n).keys()];
+    
+    // Shuffle ensuring solvable
+    do {
+        for (let i = n - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
+        }
+    } while (isWin());
+    
+    renderBoard();
+}
+
+function renderBoard() {
+    const board = document.getElementById('puzzle-board');
+    board.style.gridTemplateColumns = `repeat(${gridSize}, ${tileSize}px)`;
+    board.style.gridTemplateRows = `repeat(${gridSize}, ${tileSize}px)`;
+    board.innerHTML = '';
+    
+    const bgSize = tileSize * gridSize;
+
+    pieces.forEach((pieceIndex, currentIndex) => {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.style.width = tileSize + 'px';
+        tile.style.height = tileSize + 'px';
+        tile.style.backgroundImage = `url(${currentRelic.url})`;
+        tile.style.backgroundSize = `${bgSize}px ${bgSize}px`;
+        
+        const row = Math.floor(pieceIndex / gridSize);
+        const col = pieceIndex % gridSize;
+        tile.style.backgroundPosition = `-${col * tileSize}px -${row * tileSize}px`;
+
+        tile.dataset.index = currentIndex;
+        
+        // Drag & drop
+        tile.draggable = true;
+        tile.addEventListener('dragstart', onDragStart);
+        tile.addEventListener('dragover', onDragOver);
+        tile.addEventListener('dragleave', onDragLeave);
+        tile.addEventListener('drop', onDrop);
+        tile.addEventListener('dragend', onDragEnd);
+
+        // Touch support
+        tile.addEventListener('touchstart', onTouchStart, {passive: true});
+        tile.addEventListener('touchend', onTouchEnd);
+
+        board.appendChild(tile);
+    });
+}
+
+// Drag handling
+let dragSourceIndex = null;
+let touchStartIndex = null;
+
+function onDragStart(e) {
+    dragSourceIndex = parseInt(this.dataset.index);
+    this.classList.add('drag-source');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', dragSourceIndex);
+}
+
+function onDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    this.classList.add('drag-over');
+}
+
+function onDragLeave() {
+    this.classList.remove('drag-over');
+}
+
+function onDrop(e) {
+    e.preventDefault();
+    const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+    const toIndex = parseInt(this.dataset.index);
+    if (fromIndex !== toIndex) {
+        swapTiles(fromIndex, toIndex);
+    }
+    this.classList.remove('drag-over');
+}
+
+function onDragEnd() {
+    document.querySelectorAll('.tile').forEach(t => {
+        t.classList.remove('drag-source', 'drag-over');
+    });
+}
+
+// Touch swap (tap two tiles)
+function onTouchStart() {
+    if (touchStartIndex === null) {
+        touchStartIndex = parseInt(this.dataset.index);
+        this.style.boxShadow = `0 0 0 2px var(--gold), 0 0 12px rgba(201,168,76,0.5)`;
+    } else {
+        const fromIndex = touchStartIndex;
+        const toIndex = parseInt(this.dataset.index);
+        document.querySelectorAll('.tile').forEach(t => t.style.boxShadow = '');
+        touchStartIndex = null;
+        if (fromIndex !== toIndex) swapTiles(fromIndex, toIndex);
+    }
+}
+
+function onTouchEnd(e) { e.preventDefault(); }
+
+function swapTiles(from, to) {
+    [pieces[from], pieces[to]] = [pieces[to], pieces[from]];
+    moveCount++;
+    updateMoveCount();
+    renderBoard();
+    // After every move, show confirm button (player decides when to submit)
+    updateConfirmArea();
+}
+
+function updateMoveCount() {
+    document.getElementById('move-count').textContent = moveCount;
+}
+
+function isWin() {
+    return pieces.every((val, i) => val === i);
+}
+
+function updateConfirmArea() {
+    const confirmBtn = document.getElementById('confirm-btn');
+    const view3dBtn  = document.getElementById('view3d-btn');
+    // Show confirm button once at least one move has been made, unless already won
+    if (moveCount > 0 && !puzzleSolved) {
+        confirmBtn.classList.remove('hidden');
+        confirmBtn.classList.remove('wrong');
+        // Reset label
+        confirmBtn.querySelector('.confirm-label').textContent = '确认答案';
+        confirmBtn.querySelector('.confirm-icon').textContent = '◈';
+        view3dBtn.classList.add('hidden');
+    }
+}
+
+let puzzleSolved = false;
+let wrongCount = 0;
+
+function confirmAnswer() {
+    const confirmBtn = document.getElementById('confirm-btn');
+    const view3dBtn  = document.getElementById('view3d-btn');
+
+    if (isWin()) {
+        // ✅ Correct!
+        puzzleSolved = true;
+        wrongCount = 0;
+        confirmBtn.classList.add('hidden');
+        view3dBtn.classList.remove('hidden');
+
+        document.getElementById('puzzle-board').classList.add('win-glow');
+        document.getElementById('status-text').textContent = '✦ 完全正确！文物已复原';
+        document.getElementById('status-dot').style.background = '#6abf6a';
+        showCorrectFlash();
+
+    } else {
+        // ❌ Wrong
+        wrongCount++;
+        const remaining = 3 - wrongCount;
+
+        if (wrongCount >= 3) {
+            revealAnswer();
+        } else {
+            confirmBtn.classList.add('wrong');
+            confirmBtn.querySelector('.confirm-icon').textContent = '✕';
+            confirmBtn.querySelector('.confirm-label').textContent =
+                remaining === 1 ? '错误，还有最后 1 次机会' : `错误，还有 ${remaining} 次机会`;
+            setTimeout(() => {
+                confirmBtn.classList.remove('wrong');
+                confirmBtn.querySelector('.confirm-label').textContent = '确认答案';
+                confirmBtn.querySelector('.confirm-icon').textContent = '◈';
+            }, 1800);
+        }
+    }
+}
+
+function revealAnswer() {
+    puzzleSolved = true;
+    const confirmBtn = document.getElementById('confirm-btn');
+    const view3dBtn  = document.getElementById('view3d-btn');
+
+    confirmBtn.classList.add('hidden');
+    document.getElementById('status-dot').style.background = '#c0392b';
+    document.getElementById('status-text').textContent = '已为你展示正确答案';
+
+    const board = document.getElementById('puzzle-board');
+    const tiles = Array.from(board.querySelectorAll('.tile'));
+    const n = gridSize * gridSize;
+
+    // Disable drag during reveal
+    tiles.forEach(t => { t.draggable = false; t.style.cursor = 'default'; });
+
+    // Sequentially flip each tile to its correct position
+    let i = 0;
+    const interval = setInterval(() => {
+        if (i >= n) {
+            clearInterval(interval);
+            setTimeout(() => {
+                document.getElementById('puzzle-board').classList.add('win-glow');
+                view3dBtn.classList.remove('hidden');
+            }, 300);
+            return;
+        }
+        const tile = tiles[i];
+        const row = Math.floor(i / gridSize);
+        const col = i % gridSize;
+        tile.style.transition = 'background-position 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.2s';
+        tile.style.backgroundPosition = `-${col * tileSize}px -${row * tileSize}px`;
+        tile.style.opacity = '0.5';
+        setTimeout(() => { tile.style.opacity = '1'; }, 180);
+        i++;
+    }, 90);
+}
+
+function showCorrectFlash() {
+    // Brief floating text above board
+    const board = document.getElementById('puzzle-board');
+    const flash = document.createElement('div');
+    flash.textContent = '✦ 正确 ✦';
+    flash.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: var(--gold);
+        font-family: 'Ma Shan Zheng', serif;
+        font-size: 36px;
+        letter-spacing: 0.2em;
+        pointer-events: none;
+        z-index: 10;
+        text-shadow: 0 0 20px rgba(201,168,76,0.8);
+        animation: correctFlash 1.2s ease forwards;
+    `;
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes correctFlash {
+            0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.6); }
+            30%  { opacity: 1; transform: translate(-50%,-50%) scale(1.1); }
+            70%  { opacity: 1; transform: translate(-50%,-60%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%,-80%) scale(0.9); }
+        }
+    `;
+    document.head.appendChild(style);
+    board.style.position = 'relative';
+    board.appendChild(flash);
+    setTimeout(() => flash.remove(), 1300);
+}
+
+function goTo3D() {
+    // 3D model URLs for each relic (Sketchfab embeds or similar)
+    const model3dUrls = {
+        "四龙四凤方案": "yuan.html",
+        "中山王方壶":   "yuan.html",
+        "中山王鼎":     "yuan.html",
+        "虎噬鹿屏风座": "yuan.html",
+        "十五连盏灯":   "yuan.html",
+        "双翼神兽":     "yuan.html",
+    };
+    const url = model3dUrls[currentRelic.name] || "yuan.html";
+    window.open(url, '_blank');
+}
+
+function replayPuzzle() {
+    document.getElementById('win-overlay').classList.remove('show');
+    initPuzzle();
+}
+
+function goBack() {
+    document.getElementById('win-overlay').classList.remove('show');
+    document.getElementById('game-screen').style.display = 'none';
+    selScreen.style.display = 'grid';
+    currentRelic = null;
+}
+</script>
+</body>
+</html>

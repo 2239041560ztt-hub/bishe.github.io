@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busywork - 奢华黑金版</title>
+    <!-- 资源加载优化 -->
+    <script src="https://cdn.tailwindcss.com" defer></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="../css/unified-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 字体定义 */
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 300 700;
+            font-display: swap;
+            src: url('https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff2') format('woff2');
+            unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+        }
+
+        /* 全局变量 */
+        :root {
+            --gold-light: #f3e5ad;
+            --gold-main: var(--color-gold-warm);
+            --gold-dark: #8e6d13;
+            --bg-main: var(--color-paper-dark);
+            --bg-card: rgba(15, 15, 15, 0.6);
+            --bg-card-hover: rgba(25, 25, 25, 0.8);
+            --shadow-gold: rgba(193, 160, 103, 0.05);
+            --shadow-gold-strong: rgba(193, 160, 103, 0.15);
+            --transition-base: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            --transition-fast: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* 全局重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            perspective: 2000px;
+        }
+
+        /* 页面标题 */
+        .page-title {
+            font-size: clamp(2.5rem, 6vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-main) 50%, var(--gold-dark) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 2rem;
+            letter-spacing: -0.02em;
+            z-index: 20;
+            cursor: default;
+            text-align: center;
+        }
+
+        /* AI实体容器 */
+        .ai-entity-container {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            width: clamp(320px, 80vw, 500px);
+            height: clamp(320px, 80vw, 500px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1200px;
+        }
+
+        /* AI核心球体 */
+        .ai-core {
+            width: 90%;
+            height: 90%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, 
+                #2a2a2a 0%, 
+                #1a1a1a 40%, 
+                #0a0a0a 100%);
+            box-shadow: 
+                inset -5px -5px 30px rgba(0,0,0,0.8),
+                inset 10px 10px 30px rgba(255,255,255,0.05),
+                0 40px 100px rgba(0,0,0,0.5),
+                0 0 40px var(--shadow-gold);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            animation: floating 8s ease-in-out infinite;
+            will-change: transform;
+        }
+
+        .ai-core:active {
+            transform: scale(0.92) !important;
+        }
+
+        /* AI眼睛样式 */
+        .ai-eyes {
+            display: flex;
+            gap: clamp(35px, 10vw, 60px);
+            z-index: 2;
+            transition: var(--transition-fast);
+            will-change: transform;
+        }
+
+        .eye {
+            width: clamp(35px, 8vw, 58px);
+            height: clamp(50px, 12vw, 85px);
+            background: #111;
+            border-radius: 50%;
+            box-shadow: 
+                inset 0px 5px 15px rgba(0,0,0,0.9),
+                0px 0px 10px var(--shadow-gold-strong),
+                inset 0px -2px 10px var(--shadow-gold-strong);
+            position: relative;
+            transition: height 0.1s ease;
+            will-change: height, margin;
+        }
+
+        /* 眨眼动画 */
+        .blinking .eye {
+            height: 2px;
+            margin-top: calc(clamp(50px, 12vw, 85px) / 2 - 1px);
+            margin-bottom: calc(clamp(50px, 12vw, 85px) / 2 - 1px);
+            background: var(--gold-main);
+            border-radius: 2px;
+        }
+
+        /* 浮动动画 */
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px) rotateX(0deg) rotateY(0deg); }
+            25% { transform: translateY(-10px) rotateX(3deg) rotateY(-2deg); }
+            50% { transform: translateY(-20px) rotateX(5deg) rotateY(0deg); }
+            75% { transform: translateY(-10px) rotateX(3deg) rotateY(2deg); }
+        }
+
+        /* 玻璃质感卡片 */
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 2.5rem;
+            padding: 2.5rem;
+            transition: var(--transition-base);
+            border: 1px solid rgba(197, 164, 71, 0.15);
+            z-index: 10;
+            position: relative;
+            overflow: hidden;
+            will-change: background, transform, border, box-shadow;
+            cursor: pointer; /* 可点击提示 */
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(197, 164, 71, 0.03) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .glass-card:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-10px) scale(1.02);
+            border: 1px solid rgba(197, 164, 71, 0.4);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(197, 164, 71, 0.08);
+        }
+
+        .glass-card:hover::before {
+            opacity: 1;
+        }
+
+        /* 卡片文字样式 */
+        .card-title {
+            font-size: clamp(1.1rem, 2vw, 1.35rem);
+            font-weight: 700;
+            color: var(--gold-light);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .card-desc {
+            font-size: clamp(0.85rem, 1.5vw, 0.95rem);
+            color: #a0a0a0;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            color: var(--gold-main);
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            text-decoration-thickness: 1px;
+            transition: color 0.3s ease;
+        }
+
+        .glass-card:hover .highlight {
+            color: var(--gold-light);
+        }
+
+        /* 鼠标光晕效果 */
+        .cursor-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(197, 164, 71, 0.03) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+            transform: translate(-50%, -50%);
+            will-change: left, top;
+            transform: translate(-50%, -50%) translateZ(0);
+        }
+
+        /* 导航栏样式 */
+        .zhongshan-nav {
+            width: 100%;
+            z-index: 30;
+            margin-bottom: 2rem;
+        }
+
+        /* 卡片容器 */
+        .card-container {
+            margin-top: auto;
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            padding: 0 2rem 4rem;
+        }
+
+        /* 响应式适配 */
+        @media (min-width: 768px) {
+            .card-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 2rem;
+                padding: 0 2rem 8rem;
+            }
+        }
+
+        /* 低性能设备适配 */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.001s !important;
+                transition-duration: 0.001s !important;
+            }
+            .ai-core {
+                animation: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cursor-glow" id="glow"></div>
+
+    <!-- 导航栏 -->
+    <div class="zhongshan-nav">
+        <nav id="mainNav">
+            <div class="nav-container">
+                <a href="#" class="logo">中山国文化平台</a>
+                <div class="nav-links">
+                    <a href="/pages/time.html" class="nav-link">首页</a>
+                    <a href="/pages/military.html" class="nav-link">武备</a>
+                    <a href="/pages/thought.html" class="nav-link">文脉</a>
+                    <a href="/pages/craft.html" class="nav-link">造物</a>
+                    <a href="/pages/game.html" class="nav-link">体验</a>
+                </div>
+            </div>
+        </nav>
+    </div> 
+
+    <!-- 页面标题 -->
+   
+    <!-- AI 实体 -->
+    <div class="ai-entity-container">
+        <div class="ai-core" id="aiCore">
+            <div class="ai-eyes" id="aiEyes">
+                <div class="eye"></div>
+                <div class="eye"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 功能卡片区域（带跳转功能） -->
+    <div class="card-container">
+        <div class="glass-card" onmouseenter="focusAI(0)" onmouseleave="resetAI()" onclick="navigateTo('/pages/jianzhu.html')">
+            <h2 class="card-title">AI.助手</h2>
+            <p class="card-desc">
+                Type your legal question and get clear case summaries and laws instantly. No <span class="highlight">digging.</span> No wasted time.
+            </p>
+        </div>
+
+        <div class="glass-card" onmouseenter="focusAI(1)" onmouseleave="resetAI()" onclick="navigateTo('../gallery.html')">
+            <h2 class="card-title">画廊展览</h2>
+            <p class="card-desc">
+                Create contracts, notices, and drafts in seconds - clean, formatted, and ready to use.
+            </p>
+        </div>
+
+        <div class="glass-card" onmouseenter="focusAI(2)" onmouseleave="resetAI()" onclick="navigateTo('/pages/thought.html')">
+            <h2 class="card-title">文物欣赏</h2>
+            <p class="card-desc">
+                Upload a contract and Advoc finds risky clauses, mistakes, and missing terms for you.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // DOM元素获取
+        const aiCore = document.getElementById('aiCore') || null;
+        const aiEyes = document.getElementById('aiEyes') || null;
+        const glow = document.getElementById('glow') || null;
+        let isBlinking = false;
+
+        // 页面跳转函数
+        function navigateTo(url) {
+            // 跳转前动画效果
+            if (aiCore) {
+                aiCore.style.transform = 'scale(0.8) rotateX(0deg) rotateY(0deg)';
+                aiCore.style.transition = 'all 0.3s ease';
+            }
+            
+            // 延迟跳转
+            setTimeout(() => {
+                window.location.href = url;
+            }, 200);
+        }
+
+        // 节流函数
+        function throttle(fn, delay = 16) {
+            let timer = null;
+            return function(...args) {
+                if (!timer) {
+                    timer = setTimeout(() => {
+                        fn.apply(this, args);
+                        timer = null;
+                    }, delay);
+                }
+            };
+        }
+
+        // 鼠标跟随逻辑
+        const handleMouseMove = throttle((e) => {
+            if (!aiCore || !aiEyes || !glow) return;
+
+            const winW = window.innerWidth;
+            const winH = window.innerHeight;
+            const x = (e.clientX - winW / 2) / (winW / 2);
+            const y = (e.clientY - winH / 2) / (winH / 2);
+
+            // 鼠标光晕跟随
+            glow.style.left = `${e.clientX}px`;
+            glow.style.top = `${e.clientY}px`;
+
+            // 眼睛跟随
+            const moveX = Math.max(-25, Math.min(25, x * 20));
+            const moveY = Math.max(-15, Math.min(15, y * 15));
+            aiEyes.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            
+            // 球体倾斜
+            const rotateX = Math.max(-8, Math.min(8, -y * 5));
+            const rotateY = Math.max(-8, Math.min(8, x * 5));
+            aiCore.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+
+        document.addEventListener('mousemove', handleMouseMove);
+
+        // AI看向卡片
+        function focusAI(index) {
+            if (!aiCore || !aiEyes || isBlinking) return;
+            
+            const positions = [-25, 0, 25];
+            const targetX = positions[Math.max(0, Math.min(2, index))];
+            aiEyes.style.transform = `translate(${targetX}px, 40px) scale(1.1)`;
+            aiCore.style.boxShadow = '0 50px 100px rgba(0,0,0,0.8), 0 0 50px rgba(197, 164, 71, 0.1)';
+        }
+
+        // 重置AI位置
+        function resetAI() {
+            if (!aiCore || !aiEyes || isBlinking) return;
+            
+            aiEyes.style.transform = 'translate(0px, 0px) scale(1)';
+            aiCore.style.boxShadow = '0 40px 100px rgba(0,0,0,0.5), 0 0 40px rgba(197, 164, 71, 0.05)';
+        }
+
+        // 眨眼功能
+        function blink() {
+            if (!aiEyes || isBlinking) return;
+            
+            isBlinking = true;
+            aiEyes.classList.add('blinking');
+            
+            setTimeout(() => {
+                aiEyes.classList.remove('blinking');
+                setTimeout(() => {
+                    isBlinking = false;
+                }, 200);
+            }, 180);
+        }
+
+        // 点击AI眨眼
+        if (aiCore) {
+            aiCore.addEventListener('click', blink);
+        }
+
+        // 自动眨眼
+        setInterval(() => {
+            if (Math.random() > 0.85 && !isBlinking) {
+                blink();
+            }
+        }, 3000);
+
+        // 窗口大小变化重置
+        window.addEventListener('resize', () => {
+            if (aiCore) {
+                aiCore.style.transform = 'rotateX(0deg) rotateY(0deg)';
+            }
+            if (aiEyes) {
+                aiEyes.style.transform = 'translate(0px, 0px) scale(1)';
+            }
+        });
+
+        // 页面隐藏暂停动画
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (aiCore) aiCore.style.animationPlayState = 'paused';
+            } else {
+                if (aiCore) aiCore.style.animationPlayState = 'running';
+            }
+        });
+    </script>
+</body>
+</html>

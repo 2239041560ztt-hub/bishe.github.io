@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中山国经典战役</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;700;900&family=Special+Elite&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- 统一引入样式文件 -->
+<link rel="stylesheet" href="../css/unified-styles.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       var(--color-paper-dark);
+  --card-bg:  var(--color-paper-dark);
+  --card-bg2: var(--color-paper-dark);
+  --gold:     var(--color-gold-warm);
+  --gold2:    var(--color-gold-warm);
+  --gold3:    var(--color-gold-warm);
+  --gold-dim: rgba(193,160,103,0.13);
+  --text:     var(--color-ink-light);
+  --text-dim: #7a6a4a;
+  --border:   rgba(193,160,103,0.20);
+  --border2:  rgba(193,160,103,0.07);
+}
+
+html, body {
+  width: 100vw; height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: 'Noto Serif SC', serif;
+}
+
+/* grain */
+body::after {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E");
+}
+
+/* subtle gold floor glow */
+.bg-glow {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 55% 35% at 50% 105%, rgba(90,60,5,0.22) 0%, transparent 70%),
+    radial-gradient(ellipse 25% 25% at 12% 28%,  rgba(70,48,5,0.10) 0%, transparent 60%);
+}
+
+/* ═══════════════ SPLASH ═══════════════ */
+#splash {
+  position: fixed; inset: 0; z-index: 800;
+  background: var(--color-paper-dark);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.9s ease;
+}
+#splash.gone { opacity: 0; pointer-events: none; }
+
+.spl-ornament {
+  font-family: 'Special Elite', monospace;
+  font-size: 0.65rem; letter-spacing: 9px;
+  color: var(--gold3); opacity: 0.7; margin-bottom: 30px;
+}
+.spl-title {
+  font-family: 'Cinzel', serif;
+  font-size: 3.4rem; font-weight: 600;
+  color: var(--gold); letter-spacing: 7px;
+  text-shadow: 0 0 60px rgba(193,160,103,0.25);
+  margin-bottom: 12px;
+}
+.spl-sub {
+  font-size: 0.82rem; font-weight: 300;
+  color: var(--text-dim); letter-spacing: 5px;
+  margin-bottom: 52px;
+}
+.spl-line {
+  width: 200px; height: 1px; margin-bottom: 50px;
+  background: linear-gradient(90deg, transparent, var(--gold3), var(--gold), var(--gold3), transparent);
+  position: relative;
+}
+.spl-line::before, .spl-line::after {
+  content: '◆'; font-size: 0.4rem;
+  position: absolute; top: 50%; transform: translateY(-50%);
+  color: var(--gold);
+}
+.spl-line::before { left: -12px; }
+.spl-line::after  { right: -12px; }
+
+/* splash printer */
+.spl-printer {
+  width: 106px; height: 66px;
+  background: linear-gradient(155deg, #1a1508, #0c0a04);
+  border-radius: 10px; border: 1px solid var(--border);
+  position: relative; margin-bottom: 14px;
+  box-shadow: 0 0 24px rgba(193,160,103,0.07), inset 0 1px 0 rgba(193,160,103,0.07);
+}
+.spl-printer::before {
+  content: ''; position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 64px; height: 7px;
+  background: rgba(0,0,0,0.7); border-radius: 2px;
+  border: 1px solid rgba(193,160,103,0.10);
+}
+.spl-light {
+  position: absolute; top: 12px; right: 14px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--gold3); box-shadow: 0 0 8px var(--gold3);
+  animation: bgl 1.9s ease-in-out infinite;
+}
+.spl-paper {
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  width: 50px; height: 0;
+  background: var(--card-bg2); border: 1px solid var(--border2); border-bottom: none;
+  border-radius: 2px 2px 0 0;
+  animation: ppk 2.5s ease-in-out infinite;
+}
+@keyframes ppk { 0%,35%,100%{height:0} 55%,80%{height:22px} }
+@keyframes bgl { 0%,100%{opacity:1} 50%{opacity:0.18} }
+.spl-hint {
+  font-family: 'Special Elite', monospace;
+  font-size: 0.64rem; letter-spacing: 5px;
+  color: rgba(193,160,103,0.38);
+  animation: ph 2.4s ease-in-out infinite;
+}
+@keyframes ph { 0%,100%{opacity:0.38} 50%{opacity:0.9} }
+
+/* ═══════════════ BOARD UI ═══════════════ */
+/* 统一导航栏按钮样式 */
+.back-btn {
+  position: fixed; top: 30px; left: 30px; z-index: 5;
+  font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 400;
+  color: var(--gold); letter-spacing: 5px;
+  opacity: 0; transition: all 0.4s ease;
+  cursor: pointer;
+  background: rgba(10, 10, 10, 0.6);
+  border: 1px solid var(--gold);
+  padding: 10px 25px;
+  backdrop-filter: blur(8px);
+  border-radius: 2px;
+}
+.back-btn.show { opacity: 1; }
+.back-btn:hover {
+  background: var(--gold);
+  color: #0b0c10;
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.5);
+}
+
+
+
+/* ═══════════════ PRINTER ═══════════════ */
+#pw {
+  position: fixed; bottom: 0; left: 50%;
+  transform: translateX(-50%) translateY(110%);
+  z-index: 60;
+  display: flex; flex-direction: column; align-items: center;
+  transition: transform 1s cubic-bezier(0.3, 1.5, 0.6, 1);
+}
+#pw.up { transform: translateX(-50%) translateY(0); }
+
+.p-body {
+  width: 288px; height: 68px;
+  background: linear-gradient(170deg, #181208, #0d0a05);
+  border-radius: 12px 12px 0 0;
+  border: 1px solid var(--border); border-bottom: none;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 22px; position: relative;
+  box-shadow: 0 -8px 36px rgba(0,0,0,0.6), 0 0 24px rgba(193,160,103,0.05),
+              inset 0 1px 0 rgba(193,160,103,0.07);
+}
+.p-slot {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 196px; height: 5px;
+  background: #010000; border-radius: 0 0 3px 3px;
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.9);
+}
+.p-name {
+  font-family: 'Special Elite', monospace;
+  font-size: 0.52rem; letter-spacing: 3px; color: var(--text-dim);
+}
+.p-glow-strip {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg,transparent,var(--gold3),var(--gold),var(--gold3),transparent);
+  opacity: 0.45;
+}
+.p-lights { display: flex; gap: 7px; }
+.pli {
+  width: 8px; height: 8px; border-radius: 50%;
+  transition: all 0.3s;
+}
+.pli.g { background: #48c46a; box-shadow: 0 0 9px #48c46a; animation: bgl 1.6s ease-in-out infinite; }
+.pli.r { background: var(--gold); box-shadow: 0 0 10px var(--gold); animation: brf 0.26s ease-in-out infinite; }
+.pli.o { background: #1e160a; box-shadow: none; animation: none; }
+@keyframes brf { 0%,100%{opacity:1} 50%{opacity:0.08} }
+
+#pstrip {
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  width: 176px; height: 0;
+  background: linear-gradient(180deg, #171310, #111009);
+  border: 1px solid var(--border); border-bottom: none;
+  border-radius: 2px 2px 0 0;
+  transition: height 0.44s cubic-bezier(0.4,0,0.2,1); z-index: 61;
+}
+#pstrip::after {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    transparent, transparent 10px,
+    rgba(193,160,103,0.055) 10px, rgba(193,160,103,0.055) 11px
+  );
+}
+
+#pmsg {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  font-family: 'Special Elite', monospace;
+  font-size: 0.56rem; letter-spacing: 4px; color: var(--gold3);
+  white-space: nowrap; z-index: 62; opacity: 0; transition: opacity 0.25s;
+}
+#pmsg.show { opacity: 1; }
+
+/* ═══════════════ ALL CARDS base ═══════════════ */
+.card {
+  position: fixed;
+  border-radius: 3px;
+  user-select: none;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+.card.landed {
+  pointer-events: all; cursor: grab;
+  transition: box-shadow 0.2s;
+}
+.card.landed:hover {
+  box-shadow: 0 10px 48px rgba(0,0,0,0.85), 0 0 22px rgba(193,160,103,0.12) !important;
+  z-index: 100 !important;
+}
+.card.landed:active { cursor: grabbing; }
+
+/* ── Notepad ── */
+.c-notepad {
+  width: 296px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: 26px 20px 38px 42px;
+  box-shadow: 4px 6px 28px rgba(0,0,0,0.75);
+}
+.c-notepad::before {
+  content: ''; position: absolute; top: 0; left: 30px;
+  width: 1.5px; height: 100%;
+  background: rgba(193,160,103,0.16);
+}
+.c-notepad::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(
+    transparent, transparent 27px,
+    rgba(193,160,103,0.065) 27px, rgba(193,160,103,0.065) 28.5px
+  );
+  background-position: 0 52px;
+}
+.nt-ttl {
+  font-size: 1.28rem; font-weight: 700; color: var(--gold2);
+  letter-spacing: 2px; margin-bottom: 12px; position: relative; z-index: 1;
+}
+.nt-body {
+  font-size: 0.80rem; color: var(--text); line-height: 28.5px;
+  font-weight: 300; position: relative; z-index: 1;
+}
+.nt-key {
+  position: absolute; bottom: 12px; right: 13px;
+  font-family: 'Special Elite', monospace;
+  font-size: 0.58rem; color: var(--gold3); letter-spacing: 3px; z-index: 1;
+}
+.nt-key::before { content: '◆ '; font-size: 0.38rem; }
+
+/* ── Ticket ── */
+.c-ticket {
+  width: 200px;
+  background: var(--card-bg2);
+  border: 1px solid var(--border);
+  padding: 18px 16px;
+  box-shadow: 4px 6px 28px rgba(0,0,0,0.75);
+}
+.tk-lbl  { font-family: 'Special Elite', monospace; font-size: 0.52rem; letter-spacing: 3px; color: var(--text-dim); margin-bottom: 5px; }
+.tk-ttl  { font-size: 1.45rem; font-weight: 900; color: var(--gold2); line-height: 1.15; margin-bottom: 8px; letter-spacing: 2px; }
+.tk-hr   { border: none; border-top: 1px dashed rgba(193,160,103,0.35); margin: 9px 0; }
+.tk-body { font-size: 0.71rem; color: var(--text); line-height: 1.75; font-weight: 300; }
+.tk-btn  {
+  margin-top: 12px; display: inline-block;
+  background: var(--gold-dim); border: 1px solid var(--border);
+  color: var(--gold2); font-family: 'Special Elite', monospace;
+  font-size: 0.54rem; letter-spacing: 3px; padding: 5px 13px; border-radius: 2px;
+}
+
+/* ── Original Photo card ── */
+.c-photo {
+  width: 190px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: 13px 13px 32px;
+  box-shadow: 4px 6px 28px rgba(0,0,0,0.75);
+}
+.ph-frame {
+  width: 100%; height: 112px;
+  background: linear-gradient(135deg,#130f0a,#1e1910 50%,#0e0b06);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cinzel', serif; font-size: 3.2rem; font-weight: 700;
+  color: var(--gold3); text-shadow: 0 0 18px rgba(193,160,103,0.28);
+}
+.ph-cap  { margin-top: 9px; font-size: 0.92rem; font-weight: 700; color: var(--gold2); text-align: center; letter-spacing: 2px; }
+.ph-body { font-size: 0.64rem; color: var(--text-dim); line-height: 1.68; margin-top: 5px; }
+.ph-tag  { position: absolute; bottom: 8px; right: 10px; font-family: 'Special Elite', monospace; font-size: 0.52rem; letter-spacing: 2px; color: var(--gold3); text-transform: uppercase; }
+
+/* ── Editorial ── */
+.c-main {
+  width: 266px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: 22px 19px 36px;
+  box-shadow: 4px 6px 28px rgba(0,0,0,0.75);
+}
+.c-main::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg,transparent,var(--gold3),var(--gold),var(--gold3),transparent);
+}
+.mn-chap { font-family: 'Special Elite', monospace; font-size: 0.52rem; letter-spacing: 4px; color: var(--text-dim); margin-bottom: 3px; }
+.mn-ttl  { font-size: 2rem; font-weight: 900; color: var(--gold2); line-height: 1.05; margin-bottom: 3px; letter-spacing: 2px; text-shadow: 0 0 18px rgba(193,160,103,0.18); }
+.mn-yr   { font-family: 'Special Elite', monospace; font-size: 0.56rem; color: var(--gold3); letter-spacing: 4px; margin-bottom: 11px; }
+.mn-hr   { border: none; border-top: 1px solid rgba(193,160,103,0.18); margin-bottom: 11px; }
+.mn-body { font-size: 0.75rem; color: var(--text); line-height: 1.9; font-weight: 300; }
+.mn-btn  { position: absolute; bottom: 12px; right: 12px; font-family: 'Special Elite', monospace; font-size: 0.52rem; letter-spacing: 3px; color: var(--gold3); }
+
+/* ══════════════════════════════════
+   PHOTO CARDS (square, video clickable)
+══════════════════════════════════ */
+.c-vid {
+  width: 175px; height: 175px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: 4px 6px 28px rgba(0,0,0,0.8);
+  cursor: pointer !important;
+  position: fixed;
+}
+.c-vid .vid-thumb {
+  width: 100%; height: 100%;
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+/* Different gradient "photos" for each card */
+.c-vid.v1 .vid-thumb { background: linear-gradient(145deg, #0a0804, #1a1206, #251a08, #0d0b06); }
+.c-vid.v2 .vid-thumb { background: linear-gradient(155deg, #060810, #0a0d1a, #060a12, #030508); }
+.c-vid.v3 .vid-thumb { background: linear-gradient(165deg, #0a0606, #180a08, #1e0e0a, #080504); }
+.c-vid.v4 .vid-thumb { background: linear-gradient(135deg, #050a08, #080e0c, #0e1a14, #040807); }
+
+/* Subtle inner light effect */
+.c-vid.v1 .vid-thumb::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 40%, rgba(193,160,103,0.12) 0%, transparent 60%); }
+.c-vid.v2 .vid-thumb::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 30%, rgba(100,140,200,0.1) 0%, transparent 55%); }
+.c-vid.v3 .vid-thumb::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 40% 60%, rgba(200,100,80,0.09) 0%, transparent 55%); }
+.c-vid.v4 .vid-thumb::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 60% 40%, rgba(80,160,120,0.09) 0%, transparent 55%); }
+
+/* Play button */
+.vid-play {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8px;
+  transition: background 0.25s;
+}
+.vid-play-ring {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1.5px solid rgba(193,160,103,0.5);
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(193,160,103,0.06);
+  transition: all 0.25s;
+}
+.vid-play-ring::after {
+  content: '▶';
+  font-size: 0.9rem; color: var(--gold2);
+  margin-left: 3px;
+  transition: color 0.25s;
+}
+.c-vid:hover .vid-play { background: rgba(0,0,0,0.25); }
+.c-vid:hover .vid-play-ring {
+  border-color: var(--gold);
+  background: rgba(193,160,103,0.14);
+  transform: scale(1.1);
+  box-shadow: 0 0 18px rgba(193,160,103,0.3);
+}
+
+/* Photo caption bar at bottom */
+.vid-info {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(0deg, rgba(0,0,0,0.88), transparent);
+  padding: 20px 10px 8px;
+}
+.vid-label {
+  font-size: 0.7rem; font-weight: 500; color: var(--gold2);
+  letter-spacing: 2px; display: block;
+}
+.vid-sub {
+  font-family: 'Special Elite', monospace;
+  font-size: 0.5rem; letter-spacing: 2px; color: var(--text-dim);
+  margin-top: 2px; display: block;
+}
+
+/* Gold corner tick marks on photo */
+.c-vid::before, .c-vid::after {
+  content: ''; position: absolute; z-index: 2; pointer-events: none;
+}
+.c-vid::before {
+  top: 5px; left: 5px;
+  width: 12px; height: 12px;
+  border-top: 1px solid rgba(193,160,103,0.5);
+  border-left: 1px solid rgba(193,160,103,0.5);
+}
+.c-vid::after {
+  bottom: 5px; right: 5px;
+  width: 12px; height: 12px;
+  border-bottom: 1px solid rgba(193,160,103,0.5);
+  border-right: 1px solid rgba(193,160,103,0.5);
+}
+
+/* X btn shared */
+.x-btn {
+  position: absolute; top: -10px; left: -10px;
+  width: 21px; height: 21px; border-radius: 50%;
+  background: #2a0a0a; border: 1px solid rgba(160,50,50,0.5);
+  color: rgba(240,110,110,0.8); font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  cursor: pointer; z-index: 6;
+  transition: background 0.2s;
+}
+.x-btn:hover { background: #5a1010; }
+
+/* ═══════════════ VIDEO MODAL ═══════════════ */
+#vmodal {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0);
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+  transition: background 0.35s ease;
+}
+#vmodal.open {
+  background: rgba(0,0,0,0.88);
+  pointer-events: all;
+}
+.modal-box {
+  width: 760px; max-width: 92vw;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 0 80px rgba(0,0,0,0.9), 0 0 40px rgba(193,160,103,0.07);
+  transform: scale(0.88);
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.34,1.4,0.64,1);
+  overflow: hidden;
+  position: relative;
+}
+#vmodal.open .modal-box {
+  transform: scale(1);
+  opacity: 1;
+}
+/* gold top accent */
+.modal-box::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg,transparent,var(--gold3),var(--gold),var(--gold3),transparent);
+  z-index: 2;
+}
+.modal-header {
+  padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border2);
+}
+.modal-title {
+  font-family: 'Cinzel', serif; font-size: 0.8rem;
+  color: var(--gold2); letter-spacing: 4px;
+}
+.modal-close {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(193,160,103,0.07); border: 1px solid var(--border);
+  color: var(--gold3); font-size: 0.75rem;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+}
+.modal-close:hover { background: rgba(193,160,103,0.18); color: var(--gold2); }
+
+/* Video container — 16:9 */
+.modal-video-wrap {
+  position: relative; width: 100%; padding-top: 56.25%;
+  background: #000;
+}
+.modal-video-wrap iframe,
+.modal-video-wrap video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: none;
+}
+
+/* Custom video player for demo */
+.demo-player {
+  position: absolute; inset: 0;
+  background: #000;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px;
+}
+.demo-bg {
+  position: absolute; inset: 0;
+}
+.demo-title-text {
+  position: relative; z-index: 1;
+  font-family: 'Cinzel', serif;
+  font-size: 1.8rem; font-weight: 600;
+  color: var(--gold); letter-spacing: 6px;
+  text-shadow: 0 0 40px rgba(193,160,103,0.5);
+  text-align: center;
+}
+.demo-sub-text {
+  position: relative; z-index: 1;
+  font-size: 0.75rem; font-weight: 300;
+  color: var(--text-dim); letter-spacing: 4px;
+  text-align: center;
+}
+.demo-note {
+  position: relative; z-index: 1;
+  font-family: 'Special Elite', monospace;
+  font-size: 0.58rem; letter-spacing: 3px;
+  color: var(--gold3); opacity: 0.6;
+  margin-top: 8px;
+}
+
+.modal-footer {
+  padding: 10px 18px;
+  display: flex; align-items: center; gap: 10px;
+  border-top: 1px solid var(--border2);
+}
+.modal-footer-label {
+  font-family: 'Special Elite', monospace;
+  font-size: 0.52rem; letter-spacing: 3px; color: var(--text-dim);
+}
+.modal-dots {
+  display: flex; gap: 6px; margin-left: auto;
+}
+.mdot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gold-dim); border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.2s;
+}
+.mdot.active { background: var(--gold); border-color: var(--gold2); }
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+
+<!-- ═══ SPLASH ═══ -->
+<div id="splash" onclick="boot()">
+  <div class="spl-ornament">✦ · · · ✦ · · · ✦</div>
+  <div class="spl-title">中山国经典战役</div>
+  <div class="spl-sub">记忆档案</div>
+  <div class="spl-line"></div>
+  <div class="spl-printer">
+    <div class="spl-light"></div>
+    <div class="spl-paper"></div>
+  </div>
+  <div class="spl-hint">点击开始打印</div>
+</div>
+
+<!-- ═══ BOARD ═══ -->
+<!-- 修改：将原有的year-label替换为back-btn按钮 -->
+<button class="back-btn" id="ylbl" onclick="goBack()">返回</button>
+<!-- ═══ PRINTER ═══ -->
+<div id="pw">
+  <div id="pstrip"></div>
+  <div class="p-body">
+    <div class="p-slot"></div>
+    <div class="p-name">MEMORY_PRINTER_V4.0</div>
+    <div class="p-lights">
+      <div class="pli g" id="plg"></div>
+      <div class="pli o" id="plr"></div>
+    </div>
+    <div class="p-glow-strip"></div>
+  </div>
+</div>
+<div id="pmsg">◆ PRINTING...</div>
+
+<!-- ═══ TEXT CARDS ═══ -->
+<div class="card c-notepad" id="c1">
+  <div class="x-btn" data-close="c1">✕</div>
+  <div class="nt-ttl">中山战纪</div>
+  <div class="nt-body">
+    中山国，白狄鲜虞所建，<br>
+    虽处燕赵之间，却凭骁勇<br>
+    屡抗诸侯。从鄗之战的<br>
+    以弱胜强，到灵寿保卫战<br>
+    的死守不屈，其战史<br>
+    尽显小国不屈的风骨，<br>
+    亦成战国史上独特篇章。
+  </div>
+  <div class="nt-key">UNYIELDING</div>
+</div>
+
+<div class="card c-ticket" id="c2">
+  <div class="tk-lbl">Admit One · WAR</div>
+  <div class="tk-ttl">鄗代<br>之战</div>
+  <hr class="tk-hr">
+  <div class="tk-body">
+    公元前307年，赵武灵王<br>
+    携胡服骑射之威攻中山，<br>
+    中山军于鄗地设伏，<br>
+    利用地形重创赵军，<br>
+    此役成中山国鼎盛期<br>
+    最耀眼的胜绩。
+  </div>
+  <div class="tk-btn">EXPLORE ▸</div>
+</div>
+
+<div class="card c-photo" id="c3">
+  <div class="ph-frame">Z</div>
+  <div class="ph-cap">灵寿鏖兵</div>
+  <div class="ph-body">
+    公元前296年，赵军合围<br>
+    中山国都灵寿，中山人<br>
+    凭城死守，血战数月，<br>
+    终因寡不敌众城破，<br>
+    存续二百余年的中山国<br>
+    就此覆灭，其勇烈却留史。
+  </div>
+  <div class="ph-tag">P.25 · VALOR</div>
+</div>
+
+<div class="card c-main" id="c4">
+  <div class="mn-chap">CHAPTER 01</div>
+  <div class="mn-ttl">鲜虞雄风</div>
+  <div class="mn-yr">战国</div>
+  <hr class="mn-hr">
+  <div class="mn-body">
+    中山国虽为千乘小国，却在战国七雄的夹缝中数度兴衰，与晋、赵、燕等大国交锋数十次。从早期抗晋的中人之战，到中期败赵的鄗之战，其军事智慧与战斗韧性，成为北方少数民族融入华夏进程中，一段不可磨灭的铁血记忆。
+  </div>
+  <div class="mn-btn">ASPIRE ◆</div>
+</div>
+<!-- ═══ PHOTO / VIDEO CARDS ═══ -->
+<div class="card c-vid v1" id="v1" data-video="中山战纪" data-sub="MARCH · 2025">
+  <div class="vid-thumb">
+    <div class="vid-play">
+      <div class="vid-play-ring"></div>
+    </div>
+    <div class="vid-info">
+      <span class="vid-label">中山战纪</span>
+      <span class="vid-sub">MAR 2025</span>
+    </div>
+  </div>
+</div>
+
+<div class="card c-vid v2" id="v2" data-video="鄗代之战" data-sub="JUNE · 2025">
+  <div class="vid-thumb">
+    <div class="vid-play">
+      <div class="vid-play-ring"></div>
+    </div>
+    <div class="vid-info">
+      <span class="vid-label">鄗代之战</span>
+      <span class="vid-sub">JUN 2025</span>
+    </div>
+  </div>
+</div>
+
+<div class="card c-vid v3" id="v3" data-video="灵寿鏖兵" data-sub="OCT · 2025">
+  <div class="vid-thumb">
+    <div class="vid-play">
+      <div class="vid-play-ring"></div>
+    </div>
+    <div class="vid-info">
+      <span class="vid-label">灵寿鏖兵</span>
+      <span class="vid-sub">OCT 2025</span>
+    </div>
+  </div>
+</div>
+
+<div class="card c-vid v4" id="v4" data-video="鲜虞雄风" data-sub="DEC · 2025">
+  <div class="vid-thumb">
+    <div class="vid-play">
+      <div class="vid-play-ring"></div>
+    </div>
+    <div class="vid-info">
+      <span class="vid-label">鲜虞雄风</span>
+      <span class="vid-sub">DEC 2025</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ VIDEO MODAL ═══ -->
+<div id="vmodal" onclick="closeModal(event)">
+  <div class="modal-box" id="mbox">
+    <div class="modal-header">
+      <div class="modal-title" id="mtitle">中山战纪</div>
+      <div class="modal-close" onclick="closeModal()">✕</div>
+    </div>
+   <div class="modal-video-wrap">
+  <!-- 替换为视频播放器 -->
+  <video id="real-video-player" controls style="width:100%;height:100%;">
+    <source src="" type="video/mp4">
+    您的浏览器不支持HTML5视频播放
+  </video>
+</div>
+    <div class="modal-footer">
+      <div class="modal-footer-label">2025 · MEMORY ARCHIVE</div>
+      <div class="modal-dots">
+        <div class="mdot active" data-i="0"></div>
+        <div class="mdot" data-i="1"></div>
+        <div class="mdot" data-i="2"></div>
+        <div class="mdot" data-i="3"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══ CARD CONFIGS ═══ */
+const W = () => window.innerWidth, H = () => window.innerHeight;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// Text cards
+const TCARDS = [
+  { id:'c1', tx:0.05, ty:0.09, rot:-2,   msg:'◆ PRINTING · 中山战纪' },
+  { id:'c2', tx:0.34, ty:0.15, rot: 5,   msg:'◆ PRINTING · 鄗代之战' },
+  { id:'c3', tx:0.52, ty:0.08, rot:-5.5, msg:'◆ PRINTING · 灵寿鏖兵' },
+  { id:'c4', tx:0.65, ty:0.05, rot: 2.5, msg:'◆ PRINTING · 鲜虞雄风' },
+];
+
+// Photo/video cards — bottom row, tighter cluster
+const VCARDS = [
+  { id:'v1', tx:0.06, ty:0.58, rot:-3,   msg:'◆ PRINTING · 中山战纪' },
+  { id:'v2', tx:0.26, ty:0.62, rot: 4.5, msg:'◆ PRINTING · 鄗代之战' },
+  { id:'v3', tx:0.46, ty:0.56, rot:-2,   msg:'◆ PRINTING · 灵寿鏖兵' },
+  { id:'v4', tx:0.65, ty:0.60, rot: 3,   msg:'◆ PRINTING · 鲜虞雄风' },
+];
+
+const ALL_CARDS = [...TCARDS, ...VCARDS];
+
+/* ═══ 新增：返回上一页函数 ═══ */
+function goBack() {
+  // 替换下面的 URL 为你想要跳转的指定网页地址
+  window.location.href = '../pages/military.html'; // 这里修改为你的目标网址
+}
+
+/* ═══ BOOT ═══ */
+async function boot() {
+  document.getElementById('splash').classList.add('gone');
+  await sleep(600);
+
+  document.getElementById('pw').classList.add('up');
+  await sleep(1100);
+
+  document.getElementById('ylbl').classList.add('show');
+  await sleep(350);
+
+  for (let i = 0; i < ALL_CARDS.length; i++) {
+    await ejectCard(ALL_CARDS[i]);
+    if (i < ALL_CARDS.length - 1) await sleep(260);
+  }
+
+  // Attach video click after all landed
+  document.querySelectorAll('.c-vid').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target.classList.contains('x-btn') || e.target.dataset.close) return;
+      openModal(el.dataset.video, el.dataset.sub, el.id);
+    });
+  });
+}
+
+/* ═══ EJECT ═══ */
+function ejectCard(cfg) {
+  return new Promise(async resolve => {
+    const card = document.getElementById(cfg.id);
+    const strip = document.getElementById('pstrip');
+    const msg   = document.getElementById('pmsg');
+    const plg   = document.getElementById('plg');
+    const plr   = document.getElementById('plr');
+
+    plg.className = 'pli o';
+    plr.className = 'pli r';
+    msg.textContent = cfg.msg;
+    msg.classList.add('show');
+
+    strip.style.transition = 'height 0.46s cubic-bezier(0.4,0,0.2,1)';
+    strip.style.height = '58px';
+    await sleep(500);
+
+    const pw   = document.getElementById('pw');
+    const pwR  = pw.getBoundingClientRect();
+    const sx   = pwR.left + pwR.width / 2 - card.offsetWidth / 2;
+    const sy   = pwR.top - card.offsetHeight / 2;
+    const tx   = cfg.tx * W();
+    const ty   = cfg.ty * H();
+
+    card.style.left      = sx + 'px';
+    card.style.top       = sy + 'px';
+    card.style.opacity   = '1';
+    card.style.transform = 'translate(0,0) rotate(0deg) scale(0.76)';
+
+    strip.style.transition = 'height 0.28s ease';
+    strip.style.height = '0';
+
+    await sleep(30);
+
+    const dx = tx - sx, dy = ty - sy;
+    const cpx = dx * 0.5 + (cfg.rot > 0 ? 0.45 : -0.45) * Math.abs(dx);
+    const cpy = dy * 0.18 - Math.abs(dy) * 0.55;
+
+    const STEPS = 58;
+    const kfs = [];
+    for (let i = 0; i <= STEPS; i++) {
+      const t   = i / STEPS;
+      const etx = qb(t, 0, cpx, dx);
+      const ety = qb(t, 0, cpy, dy);
+      const rot = cfg.rot * eio(t);
+      const sc  = 0.76 + 0.24 * eio(t);
+      kfs.push({ transform:`translate(${etx}px,${ety}px) rotate(${rot}deg) scale(${sc})`, opacity:'1', offset:t });
+    }
+
+    const anim = card.animate(kfs, { duration:800, easing:'linear', fill:'forwards' });
+    anim.onfinish = () => {
+      anim.cancel();
+      card.style.left      = tx + 'px';
+      card.style.top       = ty + 'px';
+      card.style.transform = `rotate(${cfg.rot}deg)`;
+      card.style.opacity   = '1';
+      plg.className = 'pli g';
+      plr.className = 'pli o';
+      msg.classList.remove('show');
+      card.classList.add('landed');
+      attachDrag(card);
+      resolve();
+    };
+  });
+}
+
+function qb(t, p0, p1, p2) { return (1-t)*(1-t)*p0+2*(1-t)*t*p1+t*t*p2; }
+function eio(t) { return t<0.5?2*t*t:-1+(4-2*t)*t; }
+
+/* ═══ DRAG ═══ */
+let topZ = 10;
+function attachDrag(card) {
+  let active=false, ox=0, oy=0, cx=0, cy=0, moved=false;
+  card.addEventListener('mousedown', e => {
+    if (e.target.dataset.close || e.target.classList.contains('x-btn')) return;
+    active = true; moved = false;
+    topZ++; card.style.zIndex = topZ;
+    ox=e.clientX; oy=e.clientY;
+    cx=parseFloat(card.style.left); cy=parseFloat(card.style.top);
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', e => {
+    if (!active) return;
+    const ddx = e.clientX-ox, ddy = e.clientY-oy;
+    if (Math.abs(ddx)>3||Math.abs(ddy)>3) moved=true;
+    card.style.left=(cx+ddx)+'px'; card.style.top=(cy+ddy)+'px';
+  });
+  window.addEventListener('mouseup', e => {
+    if (active) { active=false; }
+  });
+}
+
+/* X close buttons */
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-close]');
+  if (btn) {
+    const el = document.getElementById(btn.dataset.close);
+    if (el) {
+      el.style.transition='opacity 0.3s,transform 0.3s';
+      el.style.opacity='0';
+      el.style.transform=`${el.style.transform||''} scale(0.88)`;
+      setTimeout(()=>el.style.display='none',320);
+    }
+  }
+});
+
+/* ═══ VIDEO MODAL ═══ */
+let currentVidIdx = 0;
+// ========== 【你只需要修改这个数组即可替换视频】 ==========
+const vidData = [
+  { 
+    id:'v1', 
+    title:'中山战纪', 
+    sub:'MAR 2025 · MEMORY REEL', 
+    col1:'rgba(193,160,103,0.15)', 
+    col2:'rgba(100,70,10,0.08)', 
+    videoUrl: '../assets/videos/2c05c46d83da0c14cc7a4261396ff964.mp4' // 本地视频文件路径 或 完整URL，例如：'./videos/zhanshi.mp4' 或 'https://example.com/1.mp4'
+  },
+  { 
+    id:'v2', 
+    title:'鄗代之战', 
+    sub:'JUN 2025 · MEMORY REEL', 
+    col1:'rgba(80,110,180,0.15)',  
+    col2:'rgba(40,60,120,0.08)', 
+    videoUrl: 'video2.mp4' // 第二个视频文件路径
+  },
+  { 
+    id:'v3', 
+    title:'灵寿鏖兵', 
+    sub:'OCT 2025 · MEMORY REEL', 
+    col1:'rgba(200,100,60,0.15)', 
+    col2:'rgba(120,50,20,0.08)', 
+    videoUrl: 'video3.mp4' // 第三个视频文件路径
+  },
+  { 
+    id:'v4', 
+    title:'鲜虞雄风', 
+    sub:'DEC 2025 · MEMORY REEL', 
+    col1:'rgba(80,150,120,0.15)', 
+    col2:'rgba(40,100,70,0.08)', 
+    videoUrl: 'video4.mp4' // 第四个视频文件路径
+  }
+];
+// ========== 【修改结束】 ==========
+
+let canvasAnim = null;
+
+function openModal(title, sub, vidId) {
+  const idx = vidData.findIndex(v => v.id === vidId);
+  currentVidIdx = idx >= 0 ? idx : 0;
+  const videoData = vidData[currentVidIdx];
+  
+  // 更新模态框标题
+  document.getElementById('mtitle').textContent = videoData.title;
+  
+  // 更新视频源并播放
+  const videoPlayer = document.getElementById('real-video-player');
+  videoPlayer.src = videoData.videoUrl;
+  videoPlayer.load(); // 加载新视频
+  // 自动播放（浏览器安全策略可能限制，需用户交互后才能播放）
+  videoPlayer.play().catch(err => {
+    console.log('自动播放失败（浏览器安全限制）：', err);
+    // 失败时不报错，让用户手动点击播放按钮
+  });
+  
+  // 更新导航点
+  document.querySelectorAll('.mdot').forEach((dot,i) => {
+    dot.classList.toggle('active', i===idx);
+  });
+  
+  // 显示模态框
+  document.getElementById('vmodal').classList.add('open');
+  stopCanvasAnim(); // 停止演示动画
+}
+
+function renderModal(idx) {
+  const d = vidData[idx];
+  document.getElementById('mtitle').textContent = d.title;
+  document.querySelectorAll('.mdot').forEach((dot,i) => {
+    dot.classList.toggle('active', i===idx);
+  });
+  
+  // 更新视频源
+  const videoPlayer = document.getElementById('real-video-player');
+  videoPlayer.src = d.videoUrl;
+  videoPlayer.load();
+  videoPlayer.play().catch(err => console.log('自动播放失败：', err));
+  
+  // Update canvas colors
+  if (canvasAnim) { 
+    canvasAnim.col1 = d.col1; 
+    canvasAnim.col2 = d.col2; 
+  }
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('vmodal')) return;
+  
+  // 关闭模态框时暂停视频
+  const videoPlayer = document.getElementById('real-video-player');
+  videoPlayer.pause();
+  
+  document.getElementById('vmodal').classList.remove('open');
+  stopCanvasAnim();
+}
+
+// dot navigation
+document.querySelectorAll('.mdot').forEach(dot => {
+  dot.addEventListener('click', e => {
+    e.stopPropagation();
+    currentVidIdx = parseInt(dot.dataset.i);
+    renderModal(currentVidIdx);
+  });
+});
+
+/* Canvas ambient animation for demo player */
+let rafId = null;
+function startCanvasAnim() {
+  const canvas = document.getElementById('demo-canvas');
+  if (!canvas) return; // 如果没有canvas元素则退出
+  
+  const ctx = canvas.getContext('2d');
+  const d = vidData[currentVidIdx];
+  canvasAnim = { col1: d.col1, col2: d.col2 };
+  let t = 0;
+
+  function resize() {
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function draw() {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0,0,W,H);
+
+    // Animated ambient light blobs
+    const x1 = W*0.3 + Math.sin(t*0.6)*W*0.1;
+    const y1 = H*0.4 + Math.cos(t*0.5)*H*0.1;
+    const g1 = ctx.createRadialGradient(x1,y1,0,x1,y1,W*0.4);
+    g1.addColorStop(0, canvasAnim.col1);
+    g1.addColorStop(1, 'transparent');
+    ctx.fillStyle = g1; ctx.fillRect(0,0,W,H);
+
+    const x2 = W*0.7 + Math.cos(t*0.4)*W*0.12;
+    const y2 = H*0.55 + Math.sin(t*0.45)*H*0.1;
+    const g2 = ctx.createRadialGradient(x2,y2,0,x2,y2,W*0.35);
+    g2.addColorStop(0, canvasAnim.col2);
+    g2.addColorStop(1, 'transparent');
+    ctx.fillStyle = g2; ctx.fillRect(0,0,W,H);
+
+    // Slow scan line
+    const scanY = (t * 40) % H;
+    ctx.strokeStyle = 'rgba(193,160,103,0.04)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0,scanY); ctx.lineTo(W,scanY); ctx.stroke();
+
+    // Film grain dots
+    for (let i = 0; i < 60; i++) {
+      const gx = Math.random()*W, gy = Math.random()*H;
+      const gs = Math.random()*1.2;
+      ctx.globalAlpha = Math.random()*0.06;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(gx,gy,gs,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    t += 0.016;
+    rafId = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function stopCanvasAnim() {
+  if (rafId) { 
+    cancelAnimationFrame(rafId); 
+    rafId = null; 
+  }
+}
+</script>
+</body>
+</html>

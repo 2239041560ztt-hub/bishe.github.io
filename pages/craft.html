@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中山国文化数字化展示平台</title>
+    
+    <!-- 统一引入样式文件 -->
+    <link rel="stylesheet" href="../css/unified-styles.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background-color: var(--color-paper-dark);
+        font-family: 'Helvetica Neue', sans-serif;
+    }
+
+    .canvas-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+
+    .video-container {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        width: 160px;
+        height: 120px;
+        z-index: 2;
+    }
+
+    .video-preview {
+        width: 100%;
+        height: 100%;
+        border: 2px solid #444;
+        border-radius: 8px;
+        transform: scaleX(-1);
+        opacity: 0.7;
+        object-fit: cover;
+    }
+
+    .ok-progress-wrapper {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-90deg);
+        width: 80px;
+        height: 80px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .ui-container {
+        position: absolute;
+        top: 150px;
+        right: 30px;
+        z-index: 3;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 25px;
+        border-radius: 12px;
+        color: white;
+        width: 320px;
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    h2 {
+        margin: 0 0 10px 0;
+        font-size: 26px;
+        color: var(--color-gold-warm);
+    }
+
+    .artifact-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--color-ink-light);
+        margin-bottom: 8px;
+        border-bottom: 1px solid var(--color-gold-warm);
+        padding-bottom: 5px;
+    }
+
+    p {
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--color-ink-light);
+    }
+
+    .controls {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    button {
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: 1px solid #555;
+        padding: 10px;
+        cursor: pointer;
+        transition: 0.3s;
+        border-radius: 6px;
+        text-align: left;
+    }
+
+    button:hover,
+    button.active {
+        background: var(--color-gold-warm);
+        color: var(--color-bronze-dark);
+        border-color: var(--color-gold-warm);
+    }
+
+    .status {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: var(--color-gold-warm);
+        font-size: 20px;
+        z-index: 10;
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+    }
+
+    .guide-tag {
+        font-size: 11px;
+        color: #999;
+        margin-top: 15px;
+        border-top: 1px solid #444;
+        padding-top: 10px;
+    }
+
+    /* 新增音频控制样式 */
+    .audio-controls {
+        position: absolute;
+        bottom: 20px;
+        right: 30px;
+        z-index: 4;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px 15px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .volume-btn {
+        color: var(--color-gold-warm);
+        background: none;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 5px;
+    }
+
+    .volume-slider {
+        width: 80px;
+        accent-color: var(--color-gold-warm);
+        cursor: pointer;
+    }
+
+    #ok-progress-bar { /* 保留id，因为是svg内部元素直接操作 */
+        cx: 40;
+        cy: 40;
+        r: 35;
+        fill: none;
+        stroke: #c9ad88;
+        stroke-width: 5;
+        stroke-dasharray: 220;
+        stroke-dashoffset: 220;
+    }
+    </style>
+</head>
+<body>
+    <!-- 导航栏HTML -->
+    <div class="zhongshan-nav">
+        <nav id="mainNav">
+            <div class="nav-container">
+                <a href="#" class="logo">中山国文化平台</a>
+                <div class="nav-links">
+                   <a href="/pages/time.html" class="nav-link">首页</a>
+                    <a href="/pages/military.html" class="nav-link">武备</a>
+                    <a href="/pages/thought.html" class="nav-link">文脉</a>
+                    <a href="/pages/craft.html" class="nav-link">造物</a>
+                    <a href="/pages/game.html" class="nav-link">助手</a>
+                </div>
+            </div>
+        </nav>
+    </div> 
+    <div class="status">正在系统初始化...</div>
+    <div class="video-container">
+        <video class="video-preview" playsinline></video>
+        <div class="ok-progress-wrapper">
+            <svg width="80" height="80">
+                <circle cx="40" cy="40" r="35" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="5"/>
+                <circle id="ok-progress-bar" cx="40" cy="40" r="35" fill="none" stroke="#c9ad88" stroke-width="5" stroke-dasharray="220" stroke-dashoffset="220"/>
+            </svg>
+        </div>
+    </div>
+    <div class="canvas-container"></div>
+    <div class="ui-container">
+        <h2>中山国工艺数字化展</h2>
+        <div class="artifact-info"><div class="artifact-title">加载中...</div><p>请开启摄像头并等待模型解析。</p></div>
+        <div class="controls">
+            <button onclick="switchModel(0)" class="nav-btn">1. 玉器精华</button>
+            <button onclick="switchModel(1)" class="nav-btn">2. 青铜重器</button>
+            <button onclick="switchModel(2)" class="nav-btn">3. 酒器与水器</button>
+            <button onclick="switchModel(3)" class="nav-btn">4. 礼器与神兽</button>
+            <button onclick="switchModel(4)" class="nav-btn">5. 生活用具</button>
+        </div>
+        <div class="guide-tag">
+            • <b>左右移手：</b> 平滑旋转模型<br>
+            • <b>指尖捏合：</b> 线性缩放大小<br>
+            • <b>OK手势：</b> 持续1.5秒自动切换
+        </div>
+    </div>
+    
+    <!-- 新增音频控制按钮 -->
+    <div class="audio-controls">
+        <button class="volume-btn"><i class="fas fa-volume-up"></i></button>
+        <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="0.7">
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/math/MeshSurfaceSampler.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+    <script>
+        // --- 1. 配置参数 (增加粒子数) ---
+        const artifacts = [
+            { name: "玉器精华", desc: "【虎形玉佩 / 透雕夔龙玉佩 / 夔龙黄玉佩】<br>中山国玉器以造型生动、雕工精细著称。虎形玉佩象征权力与守护，夔龙纹饰体现王权与神圣信仰。透雕工艺难度极高，表现出战国时期玉器制作的成熟水平，主要用于贵族佩饰与礼仪场合。",src: '../assets/3D/玉佩.glb', audio: '../assets/audio/玉器精华.mp3' },
+            { name: "青铜重器", desc: "【中山王鼎 / 十五连盏铜灯 / 蛇首人俑灯】<br>青铜器是中山国国家权力的重要象征。中山王鼎铭文达469字，具有极高史料价值。十五连盏铜灯结构精巧，兼具实用性与艺术性。蛇首人俑灯融合宗教信仰与审美设计，体现人神合一观念。",
+ src: '../assets/3D/ding.glb', audio: '../assets/audio/青铜重器.mp3' },
+            { name: "酒器与水器", desc: "【蟠虺纹铜瓿 / 嵌松石兽首流铜匜】<br>酒器与水器主要用于贵族宴饮与礼仪活动。蟠虺纹象征生命循环与祈福避邪。铜匜配有兽首流口并镶嵌松石，体现中山国金属加工与装饰工艺的高度发展。",
+ src: '../assets/3D/酒器.glb', audio: '../assets/audio/酒器与水器6.mp3' },
+            { name: "礼器与神兽",desc: "【中山王方壶 / 错银铜双翼神兽】<br>礼器用于重大祭祀与政治活动，是王权象征的重要载体。中山王方壶铭文记载伐燕历史，具有重要史学价值。双翼神兽造型独特，融合中原与草原文化元素，体现多元文化交融特征。",
+ src: '../assets/3D/神兽.glb', audio: '../assets/audio/礼器与神兽.mp3' },
+            { name: "生活用具",  desc: "【四龙四凤铜方案座 / 虎噬鹿屏风座 / 铜牛屏风座】<br>生活器具体现中山国工艺发展的巅峰水平。四鹿承龙案座结构复杂，采用分铸、焊接、铆接等工艺。虎噬鹿与铜牛造型生动逼真，展现出高超的写实能力与装饰艺术水平。",
+ src: '../assets/3D/四龙四凤.glb', audio: '../assets/audio/生活用具.mp3' }
+        ];
+
+        let scene, camera, renderer, particleSystem;
+        let targetPositions = [];
+        const particleCount = 50000; // 显著增加粒子数量以提高密度
+        let currentArtifactIndex = 0;
+        let targetRotationY = 0;
+        let targetScale = 1.0;
+        let currentScale = 1.0;
+        let okGestureStartTime = null;
+        const OK_HOLD_TIME = 1500;
+        let currentAudio = null;
+        let isMuted = false; // 音频静音状态
+        let audioVolume = 0.7; // 默认音量
+
+        // --- 2. 初始化 ---
+        function initScene() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 3000);
+            camera.position.set(0, 150, 400); // 调整相机位置，略微俯视
+
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio); // 增加清晰度
+            document.querySelector('.canvas-container').appendChild(renderer.domElement);
+
+            const geometry = new THREE.BufferGeometry();
+            const posArray = new Float32Array(particleCount * 3);
+            geometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: 2, // 减小粒子尺寸使高密度下不显得拥挤
+                color: 0xd4af37,
+                transparent: true,
+                opacity: 0.6,
+                map: new THREE.TextureLoader().load('https://threejs.org/examples/textures/sprites/disc.png'),
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            particleSystem = new THREE.Points(geometry, material);
+            scene.add(particleSystem);
+            
+            loadModel(0);
+            animate();
+            
+            // 初始化音频控制
+            initAudioControls();
+        }
+
+        // 初始化音频控制按钮
+        function initAudioControls() {
+            const volumeBtn = document.querySelector('.volume-btn');
+            const volumeSlider = document.querySelector('.volume-slider');
+            
+            // 静音/取消静音切换
+            volumeBtn.addEventListener('click', () => {
+                isMuted = !isMuted;
+                if (currentAudio) {
+                    currentAudio.muted = isMuted;
+                }
+                volumeBtn.innerHTML = isMuted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+            });
+            
+            // 音量调节
+            volumeSlider.addEventListener('input', (e) => {
+                audioVolume = parseFloat(e.target.value);
+                if (currentAudio) {
+                    currentAudio.volume = audioVolume;
+                }
+            });
+        }
+
+        // --- 3. 模型加载与坐标修正 (让文物站起来) ---
+        const loader = new THREE.GLTFLoader();
+        function loadModel(index) {
+            const statusEl = document.querySelector('.status');
+            statusEl.style.display = 'block';
+            statusEl.innerText = "高精粒子解析中...";
+
+            loader.load(artifacts[index].src, (gltf) => {
+                let meshes = [];
+                gltf.scene.traverse(n => { if(n.isMesh) meshes.push(n); });
+                
+                if(meshes.length > 0) {
+                    // 合并采样逻辑或选择主网格
+                    const mesh = meshes[0]; 
+                    const sampler = new THREE.MeshSurfaceSampler(mesh).build();
+                    const tempPos = new THREE.Vector3();
+                    targetPositions = [];
+                    
+                    mesh.geometry.computeBoundingBox();
+                    const size = mesh.geometry.boundingBox.getSize(new THREE.Vector3());
+                    const scaleFactor = 300 / Math.max(size.x, size.y, size.z);
+
+                    for(let i=0; i<particleCount; i++) {
+                        sampler.sample(tempPos);
+                        
+                        // 【核心修正】：通过数学变换让躺着的模型站起来
+                        // 将原始 y 赋值给 z，原始 z 赋值给 -y 即可实现绕X轴旋转
+                        const px = tempPos.x * scaleFactor;
+                        const py = tempPos.y * scaleFactor;
+                        const pz = tempPos.z * scaleFactor;
+
+                        // 绕 X 轴旋转 -90 度逻辑: (x, y, z) -> (x, z, -y)
+                        targetPositions[i] = { 
+                            x: px, 
+                            y: -pz,  // 站立修正
+                            z: py  // 站立修正
+                        };
+                    }
+                }
+                
+                document.querySelector('.artifact-title').innerText = artifacts[index].name;
+                document.querySelector('.artifact-info p').innerHTML = artifacts[index].desc;
+                document.querySelectorAll('.nav-btn').forEach((b, i) => b.classList.toggle('active', i===index));
+                statusEl.style.display = 'none';
+                playAudio(index); // 加载模型后播放对应音频
+            }, 
+            // 加载进度回调
+            (xhr) => {
+                const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                const statusEl = document.querySelector('.status');
+                statusEl.innerText = `高精粒子解析中... ${percent}%`;
+            },
+            // 加载错误处理
+            (error) => {
+                console.error('模型加载失败:', error);
+                const statusEl = document.querySelector('.status');
+                statusEl.innerText = "模型加载失败，请重试";
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 3000);
+            });
+        }
+
+        // --- 4. 手势交互逻辑 ---
+        function onResults(results) {
+            const wrapper = document.querySelector('.ok-progress-wrapper');
+            const bar = document.getElementById('ok-progress-bar'); // 保留id选择器
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const lm = results.multiHandLandmarks[0];
+                targetRotationY = (lm[0].x - 0.5) * Math.PI * 3;
+                const dist = Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y);
+                targetScale = Math.max(0.4, Math.min(2.5, dist * 8));
+
+                const isPinch = dist < 0.04;
+                const isOthersUp = lm[12].y < lm[9].y && lm[16].y < lm[13].y && lm[20].y < lm[17].y;
+                
+                if (isPinch && isOthersUp) {
+                    if (!okGestureStartTime) okGestureStartTime = Date.now();
+                    const elapsed = Date.now() - okGestureStartTime;
+                    const p = Math.min(elapsed / OK_HOLD_TIME, 1);
+                    wrapper.style.opacity = "1";
+                    bar.style.strokeDashoffset = 220 - (220 * p);
+                    if (elapsed >= OK_HOLD_TIME) {
+                        currentArtifactIndex = (currentArtifactIndex + 1) % artifacts.length;
+                        loadModel(currentArtifactIndex);
+                        okGestureStartTime = null;
+                    }
+                } else {
+                    okGestureStartTime = null;
+                    wrapper.style.opacity = "0";
+                    bar.style.strokeDashoffset = 220;
+                }
+            }
+        }
+
+        // --- 5. 动画渲染 ---
+        function animate() {
+            requestAnimationFrame(animate);
+            if(!particleSystem) return;
+
+            particleSystem.rotation.y += (targetRotationY - particleSystem.rotation.y) * 0.08;
+            currentScale += (targetScale - currentScale) * 0.1;
+            particleSystem.scale.set(currentScale, currentScale, currentScale);
+
+            const positions = particleSystem.geometry.attributes.position.array;
+            for(let i=0; i<particleCount; i++) {
+                const t = targetPositions[i] || {x:0, y:0, z:0};
+                // 缓动动画增强：让粒子汇聚更具流动感
+                positions[i*3] += (t.x - positions[i*3]) * 0.12;
+                positions[i*3+1] += (t.y - positions[i*3+1]) * 0.12;
+                positions[i*3+2] += (t.z - positions[i*3+2]) * 0.12;
+            }
+            particleSystem.geometry.attributes.position.needsUpdate = true;
+            renderer.render(scene, camera);
+        }
+
+        // 增强版音频播放函数
+        function playAudio(index) {
+            // 停止当前播放的音频
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+
+            // 创建新的音频实例
+            const audioSrc = artifacts[index].audio;
+            if (!audioSrc) return;
+
+            currentAudio = new Audio(audioSrc);
+            currentAudio.volume = audioVolume; // 设置音量
+            currentAudio.muted = isMuted; // 设置静音状态
+            
+            // 音频播放错误处理
+            currentAudio.onerror = (e) => {
+                console.error(`音频加载失败: ${audioSrc}`, e);
+                // 可以添加友好的提示
+                const statusEl = document.querySelector('.status');
+                statusEl.innerText = "音频加载失败";
+                statusEl.style.display = 'block';
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 2000);
+            };
+
+            // 自动循环播放
+            currentAudio.loop = true;
+
+            // 播放音频（处理浏览器自动播放策略）
+            currentAudio.play().catch((error) => {
+                console.warn('自动播放失败，需要用户交互:', error);
+                // 提示用户点击页面以启用音频
+                const statusEl = document.querySelector('.status');
+                statusEl.innerText = "点击页面以启用音频播放";
+                statusEl.style.display = 'block';
+                
+                // 监听用户点击事件来播放音频
+                document.addEventListener('click', enableAudioOnInteraction, { once: true });
+            });
+        }
+
+        // 用户交互后启用音频
+        function enableAudioOnInteraction() {
+            if (currentAudio) {
+                currentAudio.play().then(() => {
+                    const statusEl = document.querySelector('.status');
+                    statusEl.style.display = 'none';
+                }).catch(error => {
+                    console.error('用户交互后播放仍失败:', error);
+                });
+            }
+        }
+
+        window.switchModel = (i) => { 
+            currentArtifactIndex = i; 
+            loadModel(i); 
+        };
+
+        const hands = new Hands({locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
+        hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7 });
+        hands.onResults(onResults);
+        const cameraInst = new Camera(document.querySelector('.video-preview'), {
+            onFrame: async () => { await hands.send({image: document.querySelector('.video-preview')}); },
+            width: 320, height: 240
+        });
+        cameraInst.start();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        initScene();
+    </script>
+</body>
+</html>

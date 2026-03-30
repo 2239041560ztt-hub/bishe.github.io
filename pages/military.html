@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中山国军事档案库</title>
+    <!-- 统一引入样式文件 -->
+    <link rel="stylesheet" href="../css/unified-styles.css">
+    
+    <style>
+        /* 页面特定样式 */
+        :root {
+            --primary-gold: var(--color-gold-warm);
+            --primary-gold-light: var(--color-gold-light);
+            --primary-gold-dark: var(--color-gold-warm);
+            --dark-bg: var(--color-paper-dark);
+            --printer-body: #121212;
+            --grid-color: rgba(255, 255, 255, 0.05);
+            --paper-shadow: rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            margin: 0;
+            padding: 40px 20px;
+            background-color: var(--dark-bg);
+            background-image: 
+                radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 10px 10px, 30px 30px, 30px 30px;
+            font-family: var(--font-body-cn);
+            color: var(--color-ink-light);
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            position: relative;
+            margin-top: 80px;
+        }
+
+        .printer-head {
+            background: linear-gradient(145deg, #1a1a1a 0%, #0a0a0a 100%);
+            border-radius: 12px 12px 0 0;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,1), inset 0 -1px 0 rgba(255,255,255,0.05);
+            position: relative;
+            z-index: 10;
+            border: 1px solid #222;
+            border-bottom: 10px solid #000;
+        }
+        
+        .printer-head::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--primary-gold) 50%, transparent 100%);
+            opacity: 0.7;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .logo-text h1 {
+            margin: 0;
+            font-size: 18px;
+            letter-spacing: 4px;
+            color: var(--primary-gold);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8), 0 0 10px rgba(197, 161, 111, 0.2);
+        }
+
+        .nav-area {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 8px 5px;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            position: relative;
+            border-radius: 2px;
+        }
+
+        .nav-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: linear-gradient(90deg, var(--primary-gold-dark), var(--primary-gold), var(--primary-gold-dark));
+            transition: width 0.3s ease;
+        }
+
+        .nav-btn:hover { color: #bbb; }
+
+        .nav-btn.active {
+            color: var(--primary-gold-light);
+            text-shadow: 0 0 8px rgba(216, 184, 143, 0.4);
+        }
+
+        .nav-btn.active::after { width: 100%; }
+
+        .paper-content {
+            background-color: #0c0c0c;
+            width: 92%;
+            margin: 0 auto;
+            min-height: 500px;
+            position: relative;
+            z-index: 5;
+            border: 1px solid #1a1a1a;
+            border-top: none;
+            padding: 60px 50px;
+            box-sizing: border-box;
+            box-shadow: 
+                0 10px 20px var(--paper-shadow),
+                0 30px 60px rgba(0,0,0,0.8),
+                inset 0 1px 0 rgba(255,255,255,0.03);
+            background-image: radial-gradient(rgba(255,255,255,0.01) 1px, transparent 1px);
+            background-size: 10px 10px;
+            transform: translateY(-100%);
+            opacity: 0;
+            will-change: transform, opacity;
+        }
+
+        .paper-content.printing {
+            animation: printPaper 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes printPaper {
+            0%   { transform: translateY(-100%); opacity: 0; }
+            80%  { transform: translateY(0);     opacity: 0.95; }
+            100% { transform: translateY(-10px); opacity: 1; }
+        }
+
+
+
+        .main-title {
+            font-size: 36px;
+            color: #fff;
+            margin: 0 0 10px 0;
+            font-weight: 300;
+            letter-spacing: 8px;
+            text-shadow: 0 0 15px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.8);
+            opacity: 0;
+            animation: fadeIn 0.8s ease 0.5s forwards;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .subtitle {
+            color: var(--primary-gold);
+            font-size: 12px;
+            letter-spacing: 3px;
+            margin-bottom: 40px;
+            display: block;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            opacity: 0;
+            animation: fadeIn 0.8s ease 0.7s forwards;
+        }
+
+        .content-box {
+            max-width: 500px;
+            line-height: 2;
+            color: #aaa;
+            font-size: 14px;
+            border-left: 1px solid rgba(197, 161, 111, 0.5);
+            padding-left: 20px;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 0.9s forwards;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 1.1s forwards;
+        }
+
+        .stat-item {
+            padding: 15px;
+            border-radius: 6px;
+            background-color: rgba(18, 18, 18, 0.5);
+            border: 1px solid rgba(197, 161, 111, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            border-color: rgba(197, 161, 111, 0.3);
+            background-color: rgba(18, 18, 18, 0.8);
+        }
+
+        .stat-item h3 {
+            color: #fff;
+            font-size: 15px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px rgba(197, 161, 111, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-item p {
+            color: #666;
+            font-size: 12px;
+            margin: 0 0 12px 0;
+            line-height: 1.8;
+        }
+
+        .jump-btn {
+            background: var(--gradient-gold);
+            border: none;
+            color: var(--color-bronze-dark);
+            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .jump-btn:hover {
+            background: var(--gradient-gold);
+            box-shadow: var(--shadow-gold);
+            transform: translateY(-1px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+
+        @media (max-width: 768px) {
+            .nav-area { gap: 10px; }
+            .nav-btn { font-size: 12px; }
+            .paper-content { padding: 40px 20px; }
+            .main-title { font-size: 28px; letter-spacing: 4px; }
+            .stats-grid { grid-template-columns: 1fr; gap: 20px; }
+            .jump-btn { padding: 5px 10px; font-size: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 导航栏 -->
+    <div class="zhongshan-nav">
+        <nav id="mainNav">
+            <div class="nav-container">
+                <a href="#" class="logo">中山国文化平台</a>
+                <div class="nav-links">
+                     <a href="/pages/time.html" class="nav-link">首页</a>
+                    <a href="/pages/military.html" class="nav-link">武备</a>
+                    <a href="/pages/thought.html" class="nav-link">文脉</a>
+                    <a href="/pages/craft.html" class="nav-link">造物</a>
+                    <a href="/pages/game.html" class="nav-link">助手</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+<div class="container">
+    <div class="printer-head">
+        <div class="header-top">
+            <div class="logo-text">
+                <h1>中山国军事档案库</h1>
+            </div>
+            <div style="width: 12px; height: 12px; background: #c5a16f; border-radius: 50%; box-shadow: 0 0 10px #c5a16f, inset 0 1px 0 rgba(255,255,255,0.2);"></div>
+        </div>
+        <div class="nav-area">
+            <button class="nav-btn active" data-section="overview">军力总览</button>
+            <button class="nav-btn" data-section="weapons">兵器装备</button>
+            <button class="nav-btn" data-section="tactics">战术战法</button>
+            <button class="nav-btn" data-section="battles">经典战役</button>
+        </div>
+    </div>
+
+    <div class="paper-content printing" id="paper">
+
+        <!-- 军力总览 -->
+        <div class="content-section active" id="overview">
+            <h1 class="main-title">中山 · 军力总览</h1>
+            <span class="subtitle">◆ 千乘之国的军事根基 ◆</span>
+            <div class="content-box">
+                中山国，战国时期北方狄族建立的强国，虽国土狭小却凭强悍军力称雄于燕赵之间。其军事体系融合游牧民族的骑射优势与中原的车战战术，成为战国舞台上不可忽视的军事力量。
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3>兵力规模</h3>
+                    <p>常备军约五万，战车千乘，骑兵万骑，为典型的"千乘之国"。</p>
+                    <a href="../ziyemian/spring.html" class="jump-btn" target="_blank">查看详情</a>
+                </div>
+                <div class="stat-item">
+                    <h3>兵种构成</h3>
+                    <p>以轻骑兵为核心，辅以重装车兵和山地步兵，兵种搭配灵活。</p>
+                    <a href="../ziyemian/troop-type.html" class="jump-btn" target="_blank">查看详情</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 兵器装备 -->
+        <div class="content-section" id="weapons">
+            <h1 class="main-title">中山 · 兵器装备</h1>
+            <span class="subtitle">◆ 错金利刃 威震列国 ◆</span>
+            <div class="content-box">
+                中山国作为战国时期的"千乘之国"，其兵器体系融合了中原制式与游牧民族特色，远程以弩、弓、箭镞为主，近战则以戈、矛、戟、剑、铍、殳（铁杖）等青铜与铁制兵器为核心。
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3>远程兵器</h3>
+                    <p>中山国远程兵器以弩为核心，辅以传统弓与箭镞，是步兵与骑兵的标配远程装备。</p>
+                    <a href="../ziyemian/weapon-ranged.html" class="jump-btn" target="_blank">查看详情</a>
+                </div>
+                <div class="stat-item">
+                    <h3>近战兵器</h3>
+                    <p>中山国近战兵器兼具中原戈、矛、戟等长柄格斗器，与剑、铍、殳等短/重兵器，材质涵盖青铜与铁，适配车战、步战与突袭。</p>
+                    <a href="../ziyemian/weapon-melee.html" class="jump-btn" target="_blank">查看详情</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 战术战法 -->
+        <div class="content-section" id="tactics">
+            <h1 class="main-title">中山 · 战术战法</h1>
+            <span class="subtitle">◆ 骑射突击 山地游击 ◆</span>
+            <div class="content-box">
+                中山军充分利用骑兵机动性和本土山地优势，擅长快速突击、诱敌深入和山地伏击，多次挫败赵、燕等大国的正面进攻。
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3>核心战术</h3>
+                    <p>骑兵迂回包抄，步兵据险固守的协同作战模式。</p>
+                    <a href="../ziyemian/military-music.html" class="jump-btn" target="_blank">查看详情</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 经典战役 -->
+        <div class="content-section" id="battles">
+            <h1 class="main-title">中山 · 经典战役</h1>
+            <span class="subtitle">◆ 以弱抗强 屡挫强敌 ◆</span>
+            <div class="content-box">
+                中山国虽国小力弱，却在与赵、燕、齐等大国的交锋中屡创佳绩，从伐燕破齐到抵抗赵国十二年，展现了惊人的军事韧性。
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3>鄗之战</h3>
+                    <p>大败赵军，一度兵临赵国都城邯郸近郊。</p>
+                    <a href="../ziyemian/battle.html" class="jump-btn" target="_blank">查看详情</a>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<script>
+const paper = document.getElementById('paper');
+const sections = document.querySelectorAll('.content-section');
+const navBtns = document.querySelectorAll('.nav-btn');
+let isAnimating = false;
+
+function typeWriterEffect(element, text, speed, callback) {
+    let i = 0;
+    element.textContent = '';
+    element.style.borderRight = '2px solid var(--primary-gold)';
+    element.style.paddingRight = '5px';
+
+    function type() {
+        if (i < text.length) {
+            element.textContent += text.charAt(i++);
+            setTimeout(type, speed);
+        } else {
+            setTimeout(() => {
+                element.style.borderRight = 'none';
+                element.style.paddingRight = '0';
+                if (callback) callback();
+            }, 800);
+        }
+    }
+    type();
+}
+
+function switchSection(sectionId) {
+    if (isAnimating) return;
+    isAnimating = true;
+
+    paper.style.animation = 'none';
+    paper.offsetHeight;
+    paper.style.transition = 'transform 0.3s, opacity 0.25s';
+    paper.style.transform = 'translateY(-100%)';
+    paper.style.opacity = '0';
+
+    setTimeout(() => {
+        sections.forEach(s => s.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+
+        paper.style.transition = 'none';
+        paper.style.animation = 'printPaper 1.2s cubic-bezier(0.25,1,0.5,1) forwards';
+
+        setTimeout(() => {
+            const activeSection = document.getElementById(sectionId);
+            const titleEl = activeSection.querySelector('.main-title');
+            const contentEl = activeSection.querySelector('.content-box');
+            const titleText = titleEl.textContent;
+
+            // Reset opacity so elements are visible during typewriter
+            titleEl.style.opacity = '1';
+            contentEl.style.opacity = '1';
+
+            typeWriterEffect(titleEl, titleText, 80, () => {
+                typeWriterEffect(contentEl, contentEl.textContent, 40, () => {
+                    setTimeout(() => { isAnimating = false; }, 500);
+                });
+            });
+        }, 800);
+    }, 300);
+}
+
+navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        navBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        switchSection(btn.dataset.section);
+    });
+});
+
+window.addEventListener('load', () => {
+    const titleEl = document.querySelector('#overview .main-title');
+    const contentEl = document.querySelector('#overview .content-box');
+    const titleText = titleEl.textContent;
+
+    titleEl.style.opacity = '1';
+    contentEl.style.opacity = '1';
+
+    setTimeout(() => {
+        typeWriterEffect(titleEl, titleText, 80, () => {
+            typeWriterEffect(contentEl, contentEl.textContent, 40);
+        });
+    }, 1300);
+});
+</script>
+</body>
+</html>

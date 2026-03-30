@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中山国文化数字化展示平台</title>
+    
+    <!-- CSS 文件 - 使用 ../ 回到上级目录 -->
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- 引入Font Awesome图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+SC:wght@300;400;700&display=swap');
+        :root {
+            --accent: var(--color-gold-warm);
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--color-paper-dark);
+            color: #ffffff;
+            overflow: hidden;
+            font-family: 'Inter', 'Noto Serif SC', serif;
+            user-select: none;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+            z-index: 1;
+            touch-action: none; /* 禁用默认触摸行为 */
+        }
+        #canvas-container:active { cursor: grabbing; }
+
+        .overlay-ui {
+            position: relative;
+            z-index: 100;
+            pointer-events: none;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px;
+            box-sizing: border-box; /* 修复padding导致的溢出 */
+        }
+
+        .overlay-ui * { pointer-events: auto; }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255, 255, 255, 0.4);
+            text-decoration: none;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            width: fit-content;
+        }
+
+        .back-btn:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+            transform: translateX(-5px);
+        }
+
+        /* 背景装饰层 */
+        .bg-atmosphere {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        /* 中心径向光晕 */
+        .bg-atmosphere::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            height: 80vw;
+            background: radial-gradient(ellipse at center,
+                rgba(193, 160, 103, 0.04) 0%,
+                rgba(139, 90, 43, 0.06) 30%,
+                transparent 70%);
+            animation: breathe 8s ease-in-out infinite;
+        }
+
+        /* 底部雾气 */
+        .bg-atmosphere::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 35vh;
+            background: linear-gradient(to top,
+                rgba(1,1,1,0.8) 0%,
+                rgba(20, 12, 5, 0.3) 50%,
+                transparent 100%);
+        }
+
+        @keyframes breathe {
+            0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+        }
+
+        /* Canvas 粒子层 */
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* 装饰性边角线框 */
+        .corner-deco {
+            position: fixed;
+            z-index: 3;
+            pointer-events: none;
+        }
+        .corner-deco.tl { top: 30px; left: 30px; }
+        .corner-deco.tr { top: 30px; right: 30px; }
+        .corner-deco.bl { bottom: 30px; left: 30px; }
+        .corner-deco.br { bottom: 30px; right: 30px; }
+
+        .corner-deco svg {
+            width: 40px;
+            height: 40px;
+            opacity: 0.2;
+        }
+
+        /* 左右两侧竖排文字 */
+        .side-text {
+            position: fixed;
+            z-index: 3;
+            pointer-events: none;
+            writing-mode: vertical-rl;
+            font-size: 0.5rem;
+            letter-spacing: 4px;
+            color: rgba(193, 160, 103, 0.25);
+            text-transform: uppercase;
+            font-family: 'Noto Serif SC', serif;
+        }
+        .side-text.left  { left: 28px; top: 50%; transform: translateY(-50%); }
+        .side-text.right { right: 28px; top: 50%; transform: translateY(-50%) rotate(180deg); }
+
+        /* 水平扫描线 */
+        .scanline {
+            position: fixed;
+            left: 0; right: 0;
+            height: 1px;
+            z-index: 3;
+            pointer-events: none;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(193,160,103,0.06) 20%,
+                rgba(193,160,103,0.15) 50%,
+                rgba(193,160,103,0.06) 80%,
+                transparent 100%);
+        }
+        .scanline.top    { top: 9vh; }
+        .scanline.bottom { bottom: 15vh; }
+
+        /* 标题主体 */
+        .title-block {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+
+        /* 顶部小标签 */
+        .title-era {
+            font-size: 0.55rem;
+            letter-spacing: 6px;
+            color: rgba(193,160,103,0.5);
+            text-transform: uppercase;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .title-era::before,
+        .title-era::after {
+            content: '';
+            display: block;
+            width: 30px;
+            height: 1px;
+            background: rgba(193,160,103,0.3);
+        }
+
+        .title-block h1 {
+            font-family: 'Noto Serif SC', serif;
+            font-size: clamp(2.5rem, 9vw, 6rem);
+            font-weight: 700;
+            letter-spacing: 28px;
+            margin: 0;
+            padding-left: 28px;
+            color: #fff;
+            text-shadow:
+                0 0 60px rgba(193, 160, 103, 0.25),
+                0 0 120px rgba(193, 160, 103, 0.1);
+            line-height: 1;
+        }
+
+        /* 标题下方分隔线 */
+        .title-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            width: 260px;
+        }
+        .title-divider-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(193,160,103,0.4));
+        }
+        .title-divider-line.right {
+            background: linear-gradient(90deg, rgba(193,160,103,0.4), transparent);
+        }
+        .title-divider-diamond {
+            width: 5px;
+            height: 5px;
+            border: 1px solid rgba(193,160,103,0.5);
+            transform: rotate(45deg);
+            flex-shrink: 0;
+        }
+
+        .title-block p {
+            font-size: clamp(0.55rem, 1.2vw, 0.7rem);
+            letter-spacing: 10px;
+            color: var(--accent);
+            margin: 0;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        /* 标题下方统计数据条 */
+        .title-stats {
+            display: flex;
+            gap: 32px;
+            margin-top: 32px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding-top: 22px;
+        }
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .stat-num {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'Noto Serif SC', serif;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.48rem;
+            letter-spacing: 3px;
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+        }
+        .stat-divider {
+            width: 1px;
+            height: 36px;
+            background: rgba(255,255,255,0.08);
+            align-self: center;
+        }
+
+        .instruction-bar {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .drag-hint {
+            font-size: 0.55rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.25);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .drag-hint::before, .drag-hint::after {
+            content: '·';
+            color: var(--color-gold-warm);
+            opacity: 0.4;
+        }
+
+        /* 脉冲圆环 */
+        .pulse-ring {
+            width: 28px;
+            height: 28px;
+            border: 1px solid rgba(193,160,103,0.3);
+            border-radius: 50%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pulse-ring::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border: 1px solid rgba(193,160,103,0.1);
+            border-radius: 50%;
+            animation: pulse-out 2.5s ease-out infinite;
+        }
+        .pulse-ring i {
+            font-size: 0.6rem;
+            color: rgba(193,160,103,0.5);
+        }
+        @keyframes pulse-out {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .title-stats { gap: 20px; }
+            .stat-num { font-size: 1rem; }
+            .side-text, .corner-deco { display: none; }
+        }
+
+        .loader {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .loader.hidden { opacity: 0; pointer-events: none; }
+
+        /* 中山国介绍卡片样式 */
+        .info-card {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.92);
+            width: 90%;
+            max-width: 520px;
+            background: rgba(8, 7, 6, 0.97);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(212, 165, 116, 0.25);
+            border-radius: 4px;
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .info-card.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* 顶部装饰线 */
+        .info-card::before {
+            content: '';
+            display: block;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-gold-warm), transparent);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 28px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .card-title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .card-tag {
+            font-size: 0.55rem;
+            letter-spacing: 4px;
+            color: var(--color-gold-warm);
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .card-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 3px;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .close-btn {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .close-btn:hover {
+            color: var(--color-gold-warm);
+            border-color: var(--color-gold-warm);
+            background: rgba(193, 160, 103, 0.08);
+        }
+
+        /* 文物主体区 */
+        .card-artifact {
+            padding: 22px 28px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .artifact-index {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: rgba(193, 160, 103, 0.12);
+            line-height: 1;
+            font-family: 'Noto Serif SC', serif;
+            flex-shrink: 0;
+            letter-spacing: -2px;
+            min-width: 52px;
+            text-align: right;
+        }
+
+        .artifact-info {
+            flex: 1;
+        }
+
+        .artifact-name {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.05rem;
+            color: var(--color-gold-warm);
+            letter-spacing: 2px;
+            margin: 0 0 10px;
+            font-weight: 600;
+        }
+
+        .artifact-desc {
+            font-size: 0.78rem;
+            line-height: 1.85;
+            color: rgba(255,255,255,0.55);
+            margin: 0;
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        /* 文物元数据标签 */
+        .artifact-meta {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .meta-tag {
+            font-size: 0.55rem;
+            letter-spacing: 2px;
+            padding: 4px 10px;
+            border: 1px solid rgba(193, 160, 103, 0.2);
+            color: rgba(193, 160, 103, 0.6);
+            border-radius: 2px;
+            text-transform: uppercase;
+        }
+
+        /* 展开/收起区域 */
+        .card-expand-btn {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            color: rgba(255,255,255,0.3);
+            font-size: 0.6rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-family: 'Noto Serif SC', serif;
+            transition: color 0.2s;
+        }
+
+        .card-expand-btn:hover {
+            color: var(--color-gold-warm);
+        }
+
+        .card-expand-btn .chevron {
+            transition: transform 0.3s ease;
+            font-size: 0.5rem;
+        }
+
+        .card-expand-btn.open .chevron {
+            transform: rotate(180deg);
+        }
+
+        /* 可折叠内容 */
+        .card-expandable {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-expandable.open {
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        .card-expandable-inner {
+            padding: 0 28px 24px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .expand-section {
+            padding-top: 18px;
+            margin-bottom: 16px;
+        }
+
+        .expand-section-title {
+            font-size: 0.6rem;
+            letter-spacing: 3px;
+            color: var(--color-gold-warm);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            opacity: 0.7;
+        }
+
+        .expand-section p {
+            font-size: 0.75rem;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.45);
+            margin: 0;
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        .expand-section em {
+            color: rgba(193, 160, 103, 0.75);
+            font-style: normal;
+        }
+
+        .expand-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.05);
+            margin: 4px 0;
+        }
+
+        /* scrollbar */
+        .card-expandable::-webkit-scrollbar { width: 3px; }
+        .card-expandable::-webkit-scrollbar-track { background: transparent; }
+        .card-expandable::-webkit-scrollbar-thumb { background: rgba(193,160,103,0.2); border-radius: 2px; }
+
+        .card-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .card-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .info-card { max-width: 95%; }
+            .card-header, .card-artifact { padding: 16px 20px; }
+            .card-expand-btn { padding: 12px 20px; }
+            .card-expandable-inner { padding: 0 20px 20px; }
+            .artifact-index { font-size: 2rem; min-width: 40px; }
+        }
+
+        /* 新增：音频控制样式 */
+        .audio-control {
+            position: fixed;
+            top: 80px;
+            right: 40px;
+            z-index: 101;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 8px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .audio-control:hover {
+            border-color: var(--color-gold-warm);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .audio-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .audio-btn:hover {
+            color: var(--color-gold-warm);
+            background: rgba(193, 160, 103, 0.1);
+        }
+
+       .volume-slider {
+    /* 新增：补充 moz 前缀和标准 appearance 属性 */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    
+    width: 80px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 1px;
+    outline: none;
+    transition: all 0.3s ease;
+    
+    /* 新增：移除 Firefox 默认边框 */
+    border: none;
+}
+
+/* Webkit 内核浏览器 (Chrome/Safari/Edge) - 保留原有样式，新增标准 appearance */
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    /* 新增：标准 appearance 属性 */
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-gold-warm);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 8px rgba(193, 160, 103, 0.5);
+}
+
+/* 新增：Firefox 滑块按钮样式 */
+.volume-slider::-moz-range-thumb {
+    -moz-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    /* 新增：移除 Firefox 默认边框 */
+    border: none;
+    border-radius: 50%;
+    background: var(--color-gold-warm);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* 新增：Firefox 滑块按钮 hover 效果 */
+.volume-slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 8px rgba(193, 160, 103, 0.5);
+}
+
+/* 新增：Firefox 滑块轨道样式（保证视觉统一） */
+.volume-slider::-moz-range-track {
+    width: 100%;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 1px;
+    border: none;
+}
+        /* 移动端音频控制适配 */
+        @media (max-width: 768px) {
+            .audio-control {
+                top: 20px;
+                right: 20px;
+                padding: 6px 15px;
+            }
+            
+            .volume-slider {
+                width: 60px;
+            }
+        }
+
+        /* 搜索栏样式 */
+        .search-bar {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 101;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 8px 20px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 280px;
+        }
+
+        .search-bar:focus-within {
+            border-color: var(--color-gold-warm);
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 20px rgba(193, 160, 103, 0.15);
+            width: 360px;
+        }
+
+        .search-icon {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            transition: color 0.3s;
+        }
+
+        .search-bar:focus-within .search-icon {
+            color: var(--color-gold-warm);
+        }
+
+        .search-input {
+            background: none;
+            border: none;
+            outline: none;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            width: 100%;
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .search-count {
+            font-size: 0.6rem;
+            color: var(--color-gold-warm);
+            letter-spacing: 1px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .search-count.visible {
+            opacity: 1;
+        }
+
+        /* 自动旋转切换按钮 */
+        .autorotate-btn {
+            position: fixed;
+            bottom: 50px;
+            right: 40px;
+            z-index: 101;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 8px 18px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        .autorotate-btn:hover {
+            border-color: var(--color-gold-warm);
+            color: var(--color-gold-warm);
+        }
+
+        .autorotate-btn.active {
+            border-color: var(--color-gold-warm);
+            color: var(--color-gold-warm);
+            background: rgba(193, 160, 103, 0.08);
+        }
+
+        .autorotate-btn .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            transition: all 0.3s;
+        }
+
+        .autorotate-btn.active .dot {
+            animation: blink 1.2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* 移动端搜索适配 */
+        @media (max-width: 768px) {
+            .search-bar {
+                width: 220px;
+                top: 70px;
+                padding: 6px 15px;
+            }
+            .search-bar:focus-within {
+                width: 280px;
+            }
+            .autorotate-btn {
+                bottom: 20px;
+                right: 20px;
+                padding: 6px 14px;
+            }
+        }
+
+        /* 顶部导航栏 */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 0; /* 去掉左右padding */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: linear-gradient(to bottom, rgba(10,10,10,0.95), transparent);
+            backdrop-filter: blur(10px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        nav.scrolled {
+            padding: 15px 50px;
+            background: rgba(10,10,10,0.95);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            font-family: 'Cinzel', serif;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--color-gold-warm);
+            position: relative;
+            padding-bottom: 5px;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--color-gold-warm), transparent);
+            transform: scaleX(0);
+            transition: transform 0.6s ease;
+        }
+
+        .logo:hover::after {
+            transform: scaleX(1);
+        }
+
+        .nav-container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px; /* 调整间距 */
+            margin-right: 0; /* 移除右边的margin */
+        }
+
+        .nav-links a {
+            color: #eee;
+            text-decoration: none;
+            font-size: 18px;
+            letter-spacing: 2px;
+            position: relative;
+            padding: 5px 0;
+            overflow: hidden;
+        }
+
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -100%;
+            width: 100%;
+            height: 1px;
+            background: var(--color-gold-warm);
+            transition: left 0.4s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--color-gold-warm);
+        }
+
+        .nav-links a:hover::before {
+            left: 0;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">中山国文化平台</div>
+            <div class="nav-links">
+                <a href="/pages/time.html" class="nav-link">首页</a>
+                <a href="/pages/military.html" class="nav-link">武备</a>
+                <a href="/pages/thought.html" class="nav-link">文脉</a>
+                <a href="/pages/craft.html" class="nav-link">造物</a>
+                <a href="/pages/game.html" class="nav-link">助手</a>
+            </div>
+        </div>
+    </nav> 
+
+    <!-- 新增：音频控制界面 -->
+    <div class="audio-control">
+        <button class="audio-btn" id="playPauseBtn">
+            <i class="fas fa-play" id="audioIcon"></i>
+        </button>
+        <input type="range" min="0" max="1" step="0.01" value="0.5" class="volume-slider" id="volumeSlider">
+    </div>
+
+    <!-- 新增：自动旋转按钮 -->
+    <button class="autorotate-btn active" id="autoRotateBtn">
+        <span class="dot"></span>
+        自动旋转
+    </button>
+
+    <div class="loader" id="loader">
+        <div style="text-align: center;">
+            <div id="loader-status" style="font-size: 0.8rem; letter-spacing: 10px; color: #fff; margin-bottom: 30px; text-transform: uppercase;">正在编织历史画卷...</div>
+            <div style="width: 240px; height: 1px; background: rgba(255,255,255,0.1); margin: 0 auto; overflow: hidden;">
+                <div id="progress-bar" style="height: 100%; width: 0%; background: var(--accent); transition: width 0.3s;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <!-- 中山国介绍卡片 -->
+    <div class="card-overlay" id="cardOverlay"></div>
+    <div class="info-card" id="infoCard">
+        <div class="card-header">
+            <div class="card-title-group">
+                <span class="card-tag">中山国 · Zhongshan</span>
+                <h2 class="card-title" id="cardMainTitle">璀璨文明</h2>
+            </div>
+            <button class="close-btn" id="closeCard">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- 文物主体区 -->
+        <div class="card-artifact" id="artifactZone" style="display:none;">
+            <div class="artifact-index" id="artifactIndex">01</div>
+            <div class="artifact-info">
+                <h3 class="artifact-name" id="artifactName">—</h3>
+                <p class="artifact-desc" id="artifactDesc">—</p>
+                <div class="artifact-meta" id="artifactMeta"></div>
+            </div>
+        </div>
+
+        <!-- 展开按钮 -->
+        <button class="card-expand-btn" id="expandBtn">
+            <span>关于中山国</span>
+            <i class="fas fa-chevron-down chevron"></i>
+        </button>
+
+        <!-- 可折叠历史内容 -->
+        <div class="card-expandable" id="expandable">
+            <div class="card-expandable-inner">
+                <div class="expand-section">
+                    <div class="expand-section-title">历史沿革</div>
+                    <p>战国时期存在于今河北省中部的诸侯国，前身为北方狄族鲜虞部落所建的鲜虞国，后改国号为中山。几经存亡，最终在前296年被赵国所灭。</p>
+                </div>
+                <div class="expand-divider"></div>
+                <div class="expand-section">
+                    <div class="expand-section-title">文化特色</div>
+                    <p><em>青铜工艺</em> · 中原风格与北方特色融合　<em>建筑艺术</em> · 都城规划严谨　<em>墓葬文化</em> · 中山王陵规模宏大，随葬品丰富</p>
+                </div>
+                <div class="expand-divider"></div>
+                <div class="expand-section">
+                    <div class="expand-section-title">重要考古发现</div>
+                    <p>1974—1978年在河北平山县发掘的中山王墓，出土"中山三器"（中山王鼎、方壶、圆壶），铭文记载了中山国历史，为重要史料。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 背景氛围层 -->
+    <div class="bg-atmosphere"></div>
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- 装饰性边角 -->
+    <div class="corner-deco tl"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 40 L0 0 L40 0" stroke="#D4A574" stroke-width="1"/></svg></div>
+    <div class="corner-deco tr"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M40 40 L40 0 L0 0" stroke="#D4A574" stroke-width="1"/></svg></div>
+    <div class="corner-deco bl"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 0 L0 40 L40 40" stroke="#D4A574" stroke-width="1"/></svg></div>
+    <div class="corner-deco br"><svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M40 0 L40 40 L0 40" stroke="#D4A574" stroke-width="1"/></svg></div>
+
+    <!-- 侧边装饰文字 -->
+    <div class="side-text left"> Cultural Heritage</div>
+    <div class="side-text right">Warring States</div>
+
+    <!-- 水平扫描线 -->
+    <div class="scanline top"></div>
+    <div class="scanline bottom"></div>
+
+    <div class="overlay-ui">
+        <div></div>
+
+        <div class="title-block">
+            <div class="title-era">战国时期</div>
+            <h1>中山国</h1>
+            <div class="title-divider">
+                <div class="title-divider-line"></div>
+                <div class="title-divider-diamond"></div>
+                <div class="title-divider-line right"></div>
+            </div>
+            <p>Zhong Shan Guo </p>
+            <div class="title-stats">
+                <div class="stat-item">
+                    <span class="stat-num">1400</span>
+                    <span class="stat-label">文物藏品</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-num">118</span>
+                    <span class="stat-label">年国祚</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-num">前296</span>
+                    <span class="stat-label">灭国之年</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="instruction-bar">
+            <div class="pulse-ring"><i class="fas fa-hand-pointer"></i></div>
+            <div class="drag-hint">点击任意照片 · 探索中山国文明</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+    // 背景粒子画布
+    (function() {
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let W, H, particles = [];
+
+        function resize() {
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+
+        function Particle() {
+            this.reset();
+        }
+        Particle.prototype.reset = function() {
+            this.x = Math.random() * W;
+            this.y = Math.random() * H;
+            this.r = Math.random() * 1.2 + 0.2;
+            this.alpha = Math.random() * 0.4 + 0.05;
+            this.vx = (Math.random() - 0.5) * 0.12;
+            this.vy = (Math.random() - 0.5) * 0.12;
+            this.life = 0;
+            this.maxLife = 200 + Math.random() * 300;
+        };
+        Particle.prototype.update = function() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.life++;
+            if (this.life > this.maxLife) this.reset();
+        };
+        Particle.prototype.draw = function() {
+            const t = this.life / this.maxLife;
+            const a = this.alpha * Math.sin(t * Math.PI);
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(212,165,116,${a})`;
+            ctx.fill();
+        };
+
+        resize();
+        for (let i = 0; i < 120; i++) particles.push(new Particle());
+        // stagger initial life
+        particles.forEach((p, i) => { p.life = Math.floor(Math.random() * p.maxLife); });
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(draw);
+        }
+        draw();
+        window.addEventListener('resize', resize);
+    })();
+    </script>
+    <script>
+        // 使用占位图片替代本地路径，确保代码可直接运行
+        const baseImages = [
+            '../assets/images/time/中山王鼎.png',
+            '../assets/images/time/精美玉器.png',
+            '../assets/images/time/陶器艺术.png',
+            '../assets/images/time/青铜兵器.png',
+            '../assets/images/time/生活用具.png',
+            '../assets/images/time/车马器饰.png',
+            '../assets/images/time/建筑构件.png',
+            '../assets/images/time/货币经济.png',
+            '../assets/images/time/服饰文化.png',
+            '../assets/images/time/乐器文物.png',
+            '../assets/images/time/祭祀用品.png',
+            '../assets/images/time/文字载体.png',
+        ];
+        
+        // 检查是否有足够的图片，如果没有则重复使用现有图片
+        const totalCount = 72;
+        const galleryData = Array.from({ length: totalCount }, (_, i) => ({
+            img: baseImages[i % baseImages.length] || baseImages[0],
+            color: ['#8FAF8C', '#7B9EA8', '#FFB347', '#D4A574', '#A89984', '#6B8E23'][i % 6],
+            layer: i % 2 === 0 ? 'inner' : 'outer',
+
+            title: [
+                "青铜礼器 · 中山王鼎",
+                "精美玉器 · 龙形玉佩",
+                "陶器艺术 · 彩绘陶壶",
+                "青铜兵器 · 中山剑",
+                "生活用具 · 青铜灯",
+                "车马器饰 · 金节约",
+                "建筑构件 · 瓦当",
+                "货币经济 · 中山刀币",
+                "服饰文化 · 玉带钩",
+                "乐器文物 · 编钟",
+                "祭祀用品 · 青铜尊",
+                "文字载体 · 竹简复原"
+            ][i % 12] || `中山文物 ${i+1}`,
+            description: `这是中山国时期的珍贵文物，反映了战国时期中山国的工艺水平和文化特色。作为北方少数民族建立的国家，中山国文化融合了中原与北方草原的特色，形成了独特的艺术风格。`
+        }));
+
+        let scene, camera, renderer, clock;
+        let paintings = [];
+        let isDragging = false;
+        let rotationTarget = new THREE.Vector2(0, 0);
+        let rotationCurrent = new THREE.Vector2(0, 0);
+        let zoomTarget = 55;
+        let zoomCurrent = 100;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let hoverMouse = new THREE.Vector2(-9999, -9999);
+        let hoveredPainting = null;
+        let touchStart = new THREE.Vector2(); 
+        let touchMove = new THREE.Vector2(); 
+
+        const sphereCenterOffset = new THREE.Vector3(0, 0, -20);
+
+        // 音频相关变量
+        let audioPlayer;
+        let isAudioPlaying = false;
+
+        // 自动旋转
+        let autoRotate = true;
+        const autoRotateSpeed = 0.0008;
+
+        // 搜索/筛选
+        let searchQuery = '';
+        let filteredIndices = new Set();
+        
+        init();
+        animate();
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x010101);
+            scene.fog = new THREE.FogExp2(0x010101, 0.01);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true, 
+                logarithmicDepthBuffer: true,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // 限制像素比，提升性能
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            clock = new THREE.Clock();
+
+            // 优化光照
+            scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+            const mainLight = new THREE.PointLight(0xffffff, 0.6);
+            mainLight.position.set(0, 10, 20);
+            mainLight.castShadow = false; // 关闭阴影
+            scene.add(mainLight);
+
+            const textureLoader = new THREE.TextureLoader();
+            textureLoader.setCrossOrigin('anonymous'); // 支持跨域图片
+
+            let loadedCount = 0;
+            let errorCount = 0;
+
+            galleryData.forEach((item, i) => {
+                // 斐波那契球体分布
+                const phi = Math.acos(-1 + (2 * i) / totalCount);
+                const theta = Math.sqrt(totalCount * Math.PI) * phi;
+
+                const baseRadius = item.layer === 'inner' ? 22 : 32;
+                const radius = baseRadius + (Math.random() - 0.5) * 4;
+
+                const x = radius * Math.cos(theta) * Math.sin(phi);
+                const y = radius * Math.sin(theta) * Math.sin(phi);
+                const z = radius * Math.cos(phi);
+
+                const onComplete = () => {
+                    loadedCount++;
+                    const progress = ((loadedCount + errorCount) / totalCount) * 100;
+                    const bar = document.getElementById('progress-bar');
+                    if(bar) bar.style.width = progress + '%';
+                    
+                    
+                    if((loadedCount + errorCount) >= totalCount) {
+                        hideLoader();
+                    }
+                };
+
+                textureLoader.load(
+                    item.img, 
+                    (texture) => {
+                        // 优化纹理
+                        texture.encoding = THREE.sRGBEncoding;
+                        texture.minFilter = THREE.LinearFilter;
+                        texture.magFilter = THREE.LinearFilter;
+                        texture.generateMipmaps = false; // 关闭mipmap
+                        
+                        createPainting(texture, item, x, y, z, i);
+                        onComplete();
+                    },
+                    undefined,
+                    (err) => {
+                        console.error(`图片加载失败: ${item.img}`, err);
+                        // 创建默认颜色的画框代替
+                        createDefaultPainting(item, x, y, z, i);
+                        errorCount++;
+                        onComplete();
+                    }
+                );
+            });
+
+            // 桌面端交互
+            const container = document.getElementById('canvas-container');
+            
+            // 鼠标按下
+            container.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            });
+            
+            // 鼠标抬起
+            window.addEventListener('mouseup', (e) => {
+                if (isDragging) {
+                    // 计算移动距离
+                    const currentMouseX = (e.clientX / window.innerWidth) * 2 - 1;
+                    const currentMouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+                    
+                    // 如果移动距离很小，判定为点击
+                    const deltaX = Math.abs(currentMouseX - mouse.x);
+                    const deltaY = Math.abs(currentMouseY - mouse.y);
+                    
+                    if (deltaX < 0.01 && deltaY < 0.01) {
+                        checkPaintingClick();
+                    }
+                }
+                isDragging = false;
+            });
+            
+            // 鼠标移动
+            window.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    rotationTarget.x += e.movementX * 0.0015;
+                    rotationTarget.y += e.movementY * 0.0015;
+                    // 限制垂直旋转角度，避免翻转
+                    rotationTarget.y = Math.max(-Math.PI/4, Math.min(Math.PI/4, rotationTarget.y));
+                }
+                //hover检测
+                hoverMouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                hoverMouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            });
+            
+            // 滚轮缩放
+            window.addEventListener('wheel', (e) => {
+                zoomTarget += e.deltaY * 0.03;
+                zoomTarget = Math.max(30, Math.min(150, zoomTarget));
+            }, { passive: true });
+
+            // 移动端触摸交互
+            container.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isDragging = true;
+                // 记录触摸起始位置
+                touchStart.x = e.touches[0].clientX;
+                touchStart.y = e.touches[0].clientY;
+                
+                // 初始化鼠标位置用于点击检测
+                mouse.x = (touchStart.x / window.innerWidth) * 2 - 1;
+                mouse.y = -(touchStart.y / window.innerHeight) * 2 + 1;
+            }, { passive: false });
+            
+            window.addEventListener('touchend', (e) => {
+                if (isDragging) {
+                    // 计算触摸移动距离
+                    const deltaX = Math.abs(touchMove.x - touchStart.x);
+                    const deltaY = Math.abs(touchMove.y - touchStart.y);
+                    
+                    // 如果移动距离小于10px，判定为点击
+                    if (deltaX < 10 && deltaY < 10) {
+                        checkPaintingClick();
+                    }
+                }
+                isDragging = false;
+            });
+            
+            window.addEventListener('touchmove', (e) => {
+                if (isDragging) {
+                    e.preventDefault();
+                   
+                    touchMove.x = e.touches[0].clientX;
+                    touchMove.y = e.touches[0].clientY;
+                    
+                    
+                    const deltaX = touchMove.x - touchStart.x;
+                    const deltaY = touchMove.y - touchStart.y;
+                    
+                   
+                    rotationTarget.x += deltaX * 0.002;
+                    rotationTarget.y += deltaY * 0.002;
+                    rotationTarget.y = Math.max(-Math.PI/4, Math.min(Math.PI/4, rotationTarget.y));
+                    
+                    
+                    touchStart.x = touchMove.x;
+                    touchStart.y = touchMove.y;
+                }
+            }, { passive: false });
+            
+            // 点击卡片关闭按钮
+            document.getElementById('closeCard').addEventListener('click', closeInfoCard);
+            document.getElementById('cardOverlay').addEventListener('click', closeInfoCard);
+
+            // 展开/收起历史内容
+            document.getElementById('expandBtn').addEventListener('click', () => {
+                const expandable = document.getElementById('expandable');
+                const btn = document.getElementById('expandBtn');
+                expandable.classList.toggle('open');
+                btn.classList.toggle('open');
+            });
+            
+            // ESC键关闭卡片
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeInfoCard();
+            });
+            
+            window.addEventListener('resize', onResize);
+
+            // 初始化音频播放器
+            initAudioPlayer();
+            
+            // 添加音频控制事件监听
+            document.getElementById('playPauseBtn').addEventListener('click', toggleAudioPlayback);
+            document.getElementById('volumeSlider').addEventListener('input', adjustVolume);
+            
+            // 页面交互后尝试播放音频
+            document.addEventListener('click', initAudioOnUserInteraction, { once: true });
+            document.addEventListener('touchstart', initAudioOnUserInteraction, { once: true });
+
+            //自动旋转按钮事件
+            document.getElementById('autoRotateBtn').addEventListener('click', () => {
+                autoRotate = !autoRotate;
+                document.getElementById('autoRotateBtn').classList.toggle('active', autoRotate);
+            });
+
+            // 导航栏滚动效果
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    document.querySelector('nav').classList.add('scrolled');
+                } else {
+                    document.querySelector('nav').classList.remove('scrolled');
+                }
+            });
+        }
+
+        //初始化音频播放器
+        function initAudioPlayer() {
+            // 创建音频元素
+            audioPlayer = new Audio();
+            
+            // 使用免费的古风背景音乐示例（你可以替换为自己的音频文件）
+            // 这里使用GitHub上的示例音频，你可以替换为自己的音频URL
+            audioPlayer.src = '../assets/audio/voicertool_audio_Yunxia_2026-02-09_at_21_36_16_on_February_9th_2026.mp3';
+            
+            // 音频设置
+            audioPlayer.loop = true; // 循环播放
+            audioPlayer.volume = 0.5; // 默认音量50%
+            
+            // 监听音频播放状态变化
+            audioPlayer.addEventListener('play', () => {
+                isAudioPlaying = true;
+                document.getElementById('audioIcon').className = 'fas fa-pause';
+            });
+            
+            audioPlayer.addEventListener('pause', () => {
+                isAudioPlaying = false;
+                document.getElementById('audioIcon').className = 'fas fa-play';
+            });
+            
+            // 音频加载错误处理
+            audioPlayer.addEventListener('error', (e) => {
+                console.error('音频加载失败:', e);
+                // 可以提供备用音频源
+                audioPlayer.src = 'assets/audio/zhongshan-ancient-music.mp3';
+                audioPlayer.load();
+            });
+        }
+
+        // 用户交互后初始化音频
+        function initAudioOnUserInteraction() {
+            if (!isAudioPlaying) {
+                playAudio();
+            }
+        }
+
+        //播放音频
+        function playAudio() {
+            audioPlayer.play().catch((err) => {
+                console.log('音频自动播放被浏览器阻止，请点击播放按钮手动播放:', err);
+            });
+        }
+
+        // 暂停音频
+        function pauseAudio() {
+            audioPlayer.pause();
+        }
+
+        // 切换音频播放/暂停状态
+        function toggleAudioPlayback() {
+            if (isAudioPlaying) {
+                pauseAudio();
+            } else {
+                playAudio();
+            }
+        }
+
+        //调整音量
+        function adjustVolume() {
+            const volume = parseFloat(document.getElementById('volumeSlider').value);
+            audioPlayer.volume = volume;
+        }
+
+        function createPainting(texture, item, x, y, z, index) {
+            const group = new THREE.Group();
+
+            // 外层稍微透明
+            const frameGeo = new THREE.BoxGeometry(2.8, 3.8, 0.08);
+            const frameMat = new THREE.MeshStandardMaterial({ 
+                color: 0x000000, 
+                transparent: item.layer === 'outer',
+                opacity: item.layer === 'outer' ? 0.6 : 1
+            });
+            const frame = new THREE.Mesh(frameGeo, frameMat);
+            group.add(frame);
+
+            // 画布
+            const posterGeo = new THREE.PlaneGeometry(2.6, 3.6);
+            const posterMat = new THREE.MeshStandardMaterial({ 
+                map: texture,
+                emissive: new THREE.Color(item.color),
+                emissiveIntensity: 0.03,
+                transparent: item.layer === 'outer',
+                opacity: item.layer === 'outer' ? 0.7 : 1
+            });
+            const poster = new THREE.Mesh(posterGeo, posterMat);
+            poster.position.z = 0.05;
+            group.add(poster);
+
+            // 位置与旋转
+            group.position.set(x + sphereCenterOffset.x, y + sphereCenterOffset.y, z + sphereCenterOffset.z);
+            group.lookAt(sphereCenterOffset);
+            group.rotateY(Math.PI);
+
+            group.userData = {
+                originPos: new THREE.Vector3(x, y, z),
+                phase: Math.random() * Math.PI * 2,
+                speed: 0.2 + Math.random() * 0.3,
+                floatAmt: item.layer === 'inner' ? 1.0 : 2.0,
+                index: index,
+                title: item.title,
+                description: item.description,
+                color: item.color,
+                interactiveMesh: frame
+            };
+
+            scene.add(group);
+            paintings.push(group);
+        }
+
+        function createDefaultPainting(item, x, y, z, index) {
+            // 当图片加载失败时，创建一个纯色的画框
+            const group = new THREE.Group();
+
+            // 框架
+            const frameGeo = new THREE.BoxGeometry(2.8, 3.8, 0.08);
+            const frameMat = new THREE.MeshStandardMaterial({ 
+                color: 0x000000, 
+                transparent: item.layer === 'outer',
+                opacity: item.layer === 'outer' ? 0.6 : 1
+            });
+            const frame = new THREE.Mesh(frameGeo, frameMat);
+            group.add(frame);
+
+            // 纯色画布
+            const posterGeo = new THREE.PlaneGeometry(2.6, 3.6);
+            const posterMat = new THREE.MeshStandardMaterial({ 
+                color: new THREE.Color(item.color),
+                emissive: new THREE.Color(item.color),
+                emissiveIntensity: 0.1,
+                transparent: item.layer === 'outer',
+                opacity: item.layer === 'outer' ? 0.7 : 1
+            });
+            const poster = new THREE.Mesh(posterGeo, posterMat);
+            poster.position.z = 0.05;
+            group.add(poster);
+
+            // 添加一个简单的纹理表示图片缺失
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = item.color;
+            ctx.fillRect(0, 0, 256, 256);
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.font = 'bold 40px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('中山', 128, 100);
+            ctx.fillText(`文物${(index + 1).toString().padStart(2, '0')}`, 128, 150);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            posterMat.map = texture;
+            posterMat.needsUpdate = true;
+
+            // 位置与旋转
+            group.position.set(x + sphereCenterOffset.x, y + sphereCenterOffset.y, z + sphereCenterOffset.z);
+            group.lookAt(sphereCenterOffset);
+            group.rotateY(Math.PI);
+
+            group.userData = {
+                originPos: new THREE.Vector3(x, y, z),
+                phase: Math.random() * Math.PI * 2,
+                speed: 0.2 + Math.random() * 0.3,
+                floatAmt: item.layer === 'inner' ? 1.0 : 2.0,
+                index: index,
+                title: item.title,
+                description: item.description,
+                color: item.color,
+                interactiveMesh: frame
+            };
+
+            scene.add(group);
+            paintings.push(group);
+        }
+
+        // 搜索筛选函数
+        function applySearch(query) {
+            const countEl = document.getElementById('searchCount');
+            if (!query) {
+                filteredIndices.clear();
+                paintings.forEach(p => {
+                    p.visible = true;
+                    setHighlight(p, false);
+                });
+                countEl.textContent = '';
+                countEl.classList.remove('visible');
+                return;
+            }
+            const lq = query.toLowerCase();
+            let matched = 0;
+            paintings.forEach(p => {
+                const title = (p.userData.title || '').toLowerCase();
+                const desc = (p.userData.description || '').toLowerCase();
+                const isMatch = title.includes(lq) || desc.includes(lq);
+                p.visible = isMatch;
+                if (isMatch) {
+                    matched++;
+                    filteredIndices.add(p.userData.index);
+                    setHighlight(p, true);
+                } else {
+                    filteredIndices.delete(p.userData.index);
+                    setHighlight(p, false);
+                }
+            });
+            countEl.textContent = matched + '件';
+            countEl.classList.add('visible');
+        }
+
+        // 设置高亮（用于搜索结果）
+        function setHighlight(paintingGroup, on) {
+            if (paintingGroup.children[1] && paintingGroup.children[1].material) {
+                paintingGroup.children[1].material.emissiveIntensity = on ? 1.5 : 0.03;
+            }
+        }
+
+        function checkPaintingClick() {
+            // 更新射线起点和方向
+            raycaster.setFromCamera(mouse, camera);
+            
+            // 收集所有可交互的mesh
+            const interactiveMeshes = paintings.map(p => p.userData.interactiveMesh);
+            
+            // 检查交点
+            const intersects = raycaster.intersectObjects(interactiveMeshes);
+            
+            if (intersects.length > 0) {
+                const clickedMesh = intersects[0].object;
+                // 找到对应的painting group
+                const paintingGroup = paintings.find(p => p.userData.interactiveMesh === clickedMesh);
+                if (paintingGroup) {
+                    showInfoCard(paintingGroup.userData);
+                }
+            }
+        }
+
+        function showInfoCard(paintingData) {
+            const card = document.getElementById('infoCard');
+            const overlay = document.getElementById('cardOverlay');
+
+            // 填充文物信息
+            const artifactZone = document.getElementById('artifactZone');
+            artifactZone.style.display = 'flex';
+
+            const num = String(paintingData.index + 1).padStart(2, '0');
+            document.getElementById('artifactIndex').textContent = num;
+            document.getElementById('artifactName').textContent = paintingData.title || '中山文物';
+            document.getElementById('artifactDesc').textContent = paintingData.description || '';
+            document.getElementById('cardMainTitle').textContent = '文物详览';
+
+            const metaEl = document.getElementById('artifactMeta');
+            metaEl.innerHTML = `
+                <span class="meta-tag">藏品 · No.${num}</span>
+                <span class="meta-tag">${paintingData.layer === 'inner' ? '内圈' : '外圈'}</span>
+                <span class="meta-tag">战国时期</span>
+            `;
+
+            // 收起展开区
+            document.getElementById('expandable').classList.remove('open');
+            document.getElementById('expandBtn').classList.remove('open');
+
+            card.classList.add('active');
+            overlay.classList.add('active');
+            document.getElementById('canvas-container').style.pointerEvents = 'none';
+        }
+
+        function closeInfoCard() {
+            const card = document.getElementById('infoCard');
+            const overlay = document.getElementById('cardOverlay');
+            card.classList.remove('active');
+            overlay.classList.remove('active');
+            document.getElementById('canvas-container').style.pointerEvents = 'auto';
+            setTimeout(() => {
+                document.getElementById('artifactZone').style.display = 'none';
+                document.getElementById('cardMainTitle').textContent = '璀璨文明';
+                document.getElementById('expandable').classList.remove('open');
+                document.getElementById('expandBtn').classList.remove('open');
+            }, 400);
+        }
+
+        function hideLoader() {
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                if(loader) loader.classList.add('hidden');
+            }, 800);
+        }
+
+        function onResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            // 自动旋转
+            if (autoRotate && !isDragging) {
+                rotationTarget.x += autoRotateSpeed;
+            }
+
+            // 平滑插值旋转和缩放
+            rotationCurrent.x += (rotationTarget.x - rotationCurrent.x) * 0.05;
+            rotationCurrent.y += (rotationTarget.y - rotationCurrent.y) * 0.05;
+            zoomCurrent += (zoomTarget - zoomCurrent) * 0.05;
+
+            // 更新相机位置
+            camera.position.x = Math.sin(rotationCurrent.x) * Math.cos(rotationCurrent.y) * zoomCurrent;
+            camera.position.z = Math.cos(rotationCurrent.x) * Math.cos(rotationCurrent.y) * zoomCurrent;
+            camera.position.y = Math.sin(rotationCurrent.y) * zoomCurrent;
+            
+            // 相机看向球体中心
+            camera.lookAt(sphereCenterOffset.x, sphereCenterOffset.y - 2, sphereCenterOffset.z);
+
+            // hover射线检测
+            const hoverRaycaster = new THREE.Raycaster();
+            hoverRaycaster.setFromCamera(hoverMouse, camera);
+            const interactiveMeshes = paintings.filter(p => p.visible).map(p => p.userData.interactiveMesh);
+            const hoverIntersects = hoverRaycaster.intersectObjects(interactiveMeshes);
+            const newHovered = hoverIntersects.length > 0
+                ? paintings.find(p => p.userData.interactiveMesh === hoverIntersects[0].object) || null
+                : null;
+            if (newHovered !== hoveredPainting) {
+                hoveredPainting = newHovered;
+                document.getElementById('canvas-container').style.cursor = newHovered ? 'pointer' : 'grab';
+            }
+
+            // 更新画作位置和发光效果
+            paintings.forEach(p => {
+                const d = p.userData;
+                const offset = Math.sin(time * d.speed + d.phase) * d.floatAmt;
+                const dir = d.originPos.clone().normalize();
+                
+                p.position.copy(d.originPos)
+                    .add(dir.multiplyScalar(offset))
+                    .add(sphereCenterOffset);
+                
+                // 根据距离调整发光强度
+                const dist = p.position.distanceTo(camera.position);
+                const glow = Math.max(0, 1 - dist / 70);
+
+                if (p.children[1] && p.children[1].material) {
+                    const mat = p.children[1].material;
+                    const isSearchActive = searchQuery.length > 0;
+                    const isFiltered = isSearchActive && p.visible;
+
+                    if (p === hoveredPainting) {
+                        // 悬停发光
+                        mat.emissiveIntensity += (3.5 - mat.emissiveIntensity) * 0.12;
+                        // 悬停时轻微放大
+                        p.scale.lerp(new THREE.Vector3(1.08, 1.08, 1.08), 0.1);
+                    } else if (isFiltered) {
+                        // 搜索命中发光
+                        mat.emissiveIntensity += (1.8 - mat.emissiveIntensity) * 0.1;
+                        p.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
+                    } else if (!isSearchActive) {
+                        // 默认距离发光
+                        const target = 0.03 + glow * 2.5;
+                        mat.emissiveIntensity += (target - mat.emissiveIntensity) * 0.05;
+                        p.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
+                    } else {
+                        // 搜索未命中：暗化
+                        mat.emissiveIntensity += (0.01 - mat.emissiveIntensity) * 0.1;
+                        p.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
+                    }
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

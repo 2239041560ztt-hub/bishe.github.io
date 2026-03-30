@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中山·三器 - 探索非凡之美</title>
+    
+    <!-- 统一引入样式文件 -->
+    <link rel="stylesheet" href="../css/unified-styles.css">
+    
+    <style>
+        :root {
+            --cursor-x: 50%;
+            --cursor-y: 50%;
+            --spotlight-size: 180px;
+            --gold-color: var(--color-gold-warm);
+            --dark-bg: var(--color-paper-dark);
+            --light-gold: rgba(193, 160, 103, 0.15);
+            --animation-delay: 0s;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+SC:wght@300;400;700&display=swap');
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--dark-bg);
+            color: #fff;
+            font-family: 'Noto Serif SC', serif;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        /* 自定义光标 */
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--gold-color);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s, width 0.3s, height 0.3s;
+            mix-blend-mode: difference;
+        }
+
+        .custom-cursor.hover {
+            width: 40px;
+            height: 40px;
+            border-width: 1px;
+            background: rgba(201, 173, 136, 0.1);
+        }
+
+        /* 粒子背景 */
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* 顶部导航栏 */
+       nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 0; /* 去掉左右padding */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(10,10,10,0.95), transparent);
+    backdrop-filter: blur(10px);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+        nav.scrolled {
+            padding: 15px 50px;
+            background: rgba(10,10,10,0.95);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            font-family: 'Cinzel', serif;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--gold-color);
+            position: relative;
+            padding-bottom: 5px;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold-color), transparent);
+            transform: scaleX(0);
+            transition: transform 0.6s ease;
+        }
+
+        .logo:hover::after {
+            transform: scaleX(1);
+        }
+
+        .nav-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+        .nav-links {
+            display: flex;
+            gap: 25px; /* 调整间距 */
+    margin-right: 0; /* 移除右边的margin */
+        }
+
+        .nav-links a {
+            color: #eee;
+            text-decoration: none;
+            font-size: 18px;
+            letter-spacing: 2px;
+            position: relative;
+            padding: 5px 0;
+            overflow: hidden;
+        }
+
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -100%;
+            width: 100%;
+            height: 1px;
+            background: var(--gold-color);
+            transition: left 0.4s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--gold-color);
+        }
+
+        .nav-links a:hover::before {
+            left: 0;
+        }
+
+        /* 背景层 */
+        .background-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(193,160,103,0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(193,160,103,0.02) 0%, transparent 50%),
+                var(--dark-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+
+        /* 装饰网格 */
+        .grid-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(90deg, var(--light-gold) 1px, transparent 1px),
+                linear-gradient(var(--light-gold) 1px, transparent 1px);
+            background-size: 80px 80px;
+            background-position: center center;
+            z-index: 3;
+            opacity: 0.3;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 80px 80px; }
+        }
+
+        /* 探照灯层 */
+        .spotlight-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at center, rgba(193,160,103,0.1) 0%, transparent 70%),
+                url('../assets/images/thought/656135177107756668.jpg') center/cover;
+            z-index: 4;
+            pointer-events: none;
+            opacity: 0.9;
+            mask-image: 
+                radial-gradient(
+                    circle calc(var(--spotlight-size) * 1.5) at var(--cursor-x) var(--cursor-y),
+                    rgba(0,0,0,0.8) 20%,
+                    transparent 50%
+                ),
+                radial-gradient(
+                    circle var(--spotlight-size) at var(--cursor-x) var(--cursor-y),
+                    black 100%,
+                    transparent 100%
+                );
+            -webkit-mask-image: 
+                radial-gradient(
+                    circle calc(var(--spotlight-size) * 1.5) at var(--cursor-x) var(--cursor-y),
+                    rgba(0,0,0,0.8) 20%,
+                    transparent 50%
+                ),
+                radial-gradient(
+                    circle var(--spotlight-size) at var(--cursor-x) var(--cursor-y),
+                    black 100%,
+                    transparent 100%
+                );
+            filter: brightness(1.2) contrast(1.1);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 光晕效果 */
+        .halo {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                circle calc(var(--spotlight-size) * 3) at var(--cursor-x) var(--cursor-y),
+                rgba(193, 160, 103, 0.05) 0%,
+                transparent 70%
+            );
+            z-index: 3;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        /* 中心内容 */
+        .content-wrapper {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            pointer-events: none;
+            padding-top: 30vh;
+            opacity: 0;
+            animation: fadeIn 1.5s ease 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .main-title {
+            font-family: 'Cinzel', serif;
+            font-size: 6vw;
+            margin: 0;
+            letter-spacing: 1vw;
+            font-weight: 700;
+            color: transparent;
+            background: linear-gradient(90deg, #fff 30%, var(--gold-color) 70%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            text-shadow: 0 5px 25px rgba(0,0,0,0.5);
+            position: relative;
+            line-height: 1.2;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            0% { filter: drop-shadow(0 0 10px rgba(201,173,136,0.3)); }
+            100% { filter: drop-shadow(0 0 20px rgba(201,173,136,0.5)); }
+        }
+
+        .sub-title {
+            font-size: 1.2vw;
+            letter-spacing: 0.8vw;
+            margin: 30px 0 60px;
+            color: var(--gold-color);
+            position: relative;
+            display: inline-block;
+            opacity: 0;
+            animation: slideUp 1s ease 1s forwards;
+        }
+
+        .sub-title::before, .sub-title::after {
+            content: '◆';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gold-color);
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        .sub-title::before { left: -30px; }
+        .sub-title::after { right: -30px; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 按钮组 */
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            pointer-events: auto;
+            opacity: 0;
+            animation: fadeIn 1s ease 1.5s forwards;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border: 1px solid rgba(193, 160, 103, 0.3);
+            background: rgba(10,10,10,0.3);
+            color: var(--gold-color);
+            text-decoration: none;
+            font-size: 14px;
+            letter-spacing: 3px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(5px);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(193,160,103,0.2), transparent);
+            transition: left 0.7s ease;
+        }
+
+        .btn:hover {
+            background: rgba(201, 173, 136, 0.1);
+            border-color: var(--gold-color);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        /* 装饰元素 */
+        .ornament {
+            position: absolute;
+            width: 2px;
+            height: 100px;
+            background: linear-gradient(to bottom, transparent, var(--gold-color), transparent);
+            opacity: 0.3;
+        }
+
+        .ornament.left { left: 50px; }
+        .ornament.right { right: 50px; }
+
+        /* 底部信息 */
+        .footer {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+            color: rgba(255,255,255,0.5);
+            font-size: 12px;
+            letter-spacing: 2px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 自定义光标 -->
+    <div class="custom-cursor"></div>
+
+    <!-- 粒子背景 -->
+    <div id="particles-js"></div>
+
+    <!-- 导航栏 -->
+    <nav>
+    <div class="nav-container">
+        <div class="logo">中山国文化平台</div>
+        <div class="nav-links">
+                      <a href="/pages/time.html" class="nav-link">首页</a>
+                    <a href="/pages/military.html" class="nav-link">武备</a>
+                    <a href="/pages/thought.html" class="nav-link">文脉</a>
+                    <a href="/pages/craft.html" class="nav-link">造物</a>
+                    <a href="/pages/game.html" class="nav-link">助手</a>
+    </div>
+</nav>
+
+    <!-- 背景层 -->
+    <div class="background-container">
+        <div class="grid-overlay"></div>
+        <div class="ornament left"></div>
+        <div class="ornament right"></div>
+    </div>
+
+    <!-- 光晕层 -->
+    <div class="halo"></div>
+
+    <!-- 探照灯层 -->
+    <div class="spotlight-layer"></div>
+
+    <!-- 主要内容 -->
+    <div class="content-wrapper">
+        <h1 class="main-title">中山·三器</h1>
+        <p class="sub-title">探索非凡之美</p>
+        
+        <div class="btn-group">
+            <a href="/ding.html" class="btn">中山王鼎</a>
+            <a href="/fang.html" class="btn">夔龙方壶</a>
+            <a href="/yuan.html" class="btn">夔龙方壶</a>
+        </div>
+    </div>
+
+    <!-- 底部信息 -->
+    <div class="footer">
+        <p>© 2026 中山国文化平台 版权所有</p>
+    </div>
+
+    <!-- 引入粒子效果库 -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // 自定义光标
+        const cursor = document.querySelector('.custom-cursor');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        // 按钮悬停效果
+        document.querySelectorAll('.btn, .nav-link').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor.classList.add('hover');
+            });
+            el.addEventListener('mouseleave', () => {
+                cursor.classList.remove('hover');
+            });
+        });
+
+        // 探照灯跟随
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth) * 100;
+            const y = (e.clientY / window.innerHeight) * 100;
+            
+            document.documentElement.style.setProperty('--cursor-x', `${x}%`);
+            document.documentElement.style.setProperty('--cursor-y', `${y}%`);
+        });
+
+        // 点击效果
+        document.addEventListener('mousedown', () => {
+            document.documentElement.style.setProperty('--spotlight-size', `220px`);
+        });
+        document.addEventListener('mouseup', () => {
+            document.documentElement.style.setProperty('--spotlight-size', `180px`);
+        });
+
+        // 导航栏滚动效果
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                document.querySelector('nav').classList.add('scrolled');
+            } else {
+                document.querySelector('nav').classList.remove('scrolled');
+            }
+        });
+
+        // 初始化粒子效果
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: "#C1A067" },
+                shape: { type: "circle" },
+                opacity: { value: 0.3, random: true },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#C1A067",
+                    opacity: 0.1,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 1,
+                    direction: "none",
+                    random: true,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: { enable: true, mode: "repulse" },
+                    onclick: { enable: false, mode: "push" },
+                    resize: true
+                }
+            },
+            retina_detect: true
+        });
+
+        // 页面加载效果
+        window.addEventListener('load', () => {
+            document.body.style.opacity = 0;
+            document.body.style.transition = 'opacity 1s';
+            setTimeout(() => {
+                document.body.style.opacity = 1;
+            }, 100);
+        });
+    </script>
+</body>
+</html>

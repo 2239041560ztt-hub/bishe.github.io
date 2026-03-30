@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>战国遗梦：探秘第八雄中山国</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <!-- 统一引入样式文件 -->
+    <link rel="stylesheet" href="../css/unified-styles.css">
+    <style>
+        :root {
+            --gold: var(--color-gold-warm);
+            --gold-light: var(--color-gold-light);
+            --gold-dim: var(--color-gold-warm);
+            --paper: var(--color-paper-light);
+            --cream: var(--color-ink-light);
+            --smoke: var(--color-ink-light);
+            --deep: var(--color-paper-dark);
+            --success: #7ecb85;
+            --error: #e07070;
+            --shadow-gold: var(--shadow-gold);
+            --transition-base: 0.3s ease;
+        }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            transform: translateZ(0);
+        }
+        body {
+            /* 替换为背景图片 - 你可修改 url 路径 */
+            background: url('../assets/3D/鼎1.png') center/cover fixed var(--deep);
+            color: var(--cream);
+            font-family: 'Noto Serif SC', serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+            /* 背景图片遮罩，提升文字可读性 */
+            position: relative;
+        }
+        /* 背景遮罩层 - 优化文字与背景的对比度 */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 30%, rgba(193,160,103,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 80% at 80% 70%, rgba(139,58,42,0.08) 0%, transparent 60%),
+                repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(193,160,103,0.015) 80px, rgba(193,160,103,0.015) 81px),
+                repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(193,160,103,0.015) 80px, rgba(193,160,103,0.015) 81px),
+                /* 新增半透明遮罩，提升文字可读性 */
+                rgba(18, 15, 10, 0.85);
+            pointer-events: none;
+            z-index: 0;
+            will-change: background;
+        }
+        .seal-bg {
+            position: fixed; 
+            top: -60px; 
+            right: -60px;
+            width: clamp(180px, 40vw, 280px);
+            height: clamp(180px, 40vw, 280px);
+            border-radius: 50%;
+            border: 3px solid rgba(139,58,42,0.15);
+            opacity: 0.4; 
+            pointer-events: none; 
+            z-index: 0;
+        }
+        #app {
+            position: relative; 
+            z-index: 1;
+            max-width: 780px; 
+            margin: 0 auto;
+            padding: clamp(20px, 5vw, 40px) clamp(10px, 2vw, 20px) clamp(40px, 8vw, 80px);
+        }
+        .site-header { 
+            text-align: center; 
+            margin-bottom: clamp(30px, 6vw, 50px); 
+            animation: fadeDown 0.8s ease both; 
+        }
+        .site-header .eyebrow {
+            font-family: 'ZCOOL XiaoWei', serif;
+            font-size: 0.75rem; 
+            letter-spacing: clamp(0.3em, 1vw, 0.5em);
+            color: var(--gold-dim); 
+            margin-bottom: 12px;
+        }
+        .site-header h1 {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: clamp(1.8rem, 5vw, 3rem);
+            color: var(--gold); 
+            line-height: 1.3;
+            text-shadow: 0 0 40px var(--shadow-gold); 
+            margin-bottom: 12px;
+        }
+        .header-ornament {
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 16px; 
+            color: var(--gold-dim); 
+            font-size: 0.7rem; 
+            letter-spacing: 0.3em; 
+            margin-top: 8px;
+        }
+        .header-ornament::before, .header-ornament::after {
+            content: ''; 
+            flex: 1; 
+            max-width: 120px; 
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--gold-dim));
+        }
+        .header-ornament::after { 
+            background: linear-gradient(to left, transparent, var(--gold-dim)); 
+        }
+        .progress-container {
+            margin-bottom: clamp(20px, 5vw, 40px);
+        }
+        .progress-label { 
+            text-align: center; 
+            font-size: 0.72rem; 
+            color: var(--gold-dim); 
+            letter-spacing: 0.1em; 
+            margin-bottom: 10px; 
+        }
+        .progress-track { 
+            display: flex; 
+            animation: fadeDown 0.8s 0.15s ease both; 
+            height: 3px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-step {
+            flex: 1;
+            height: 100%;
+            background: rgba(193,160,103,0.15);
+            transition: background var(--transition-base);
+        }
+        .progress-step.done {
+            background: var(--gold);
+        }
+        .progress-step.active {
+            background: linear-gradient(to right, var(--gold), rgba(193,160,103,0.4));
+        }
+        .card {
+            background: linear-gradient(145deg, rgba(30,26,20,0.95) 0%, rgba(18,15,10,0.98) 100%);
+            border: 1px solid rgba(193,160,103,0.2); 
+            border-radius: 2px; 
+            padding: clamp(24px, 5vw, 40px);
+            position: relative; 
+            overflow: hidden; 
+            animation: cardIn 0.5s ease both;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .card::before {
+            content: ''; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--gold), transparent); 
+            opacity: 0.6;
+        }
+        .card::after {
+            content: ''; 
+            position: absolute; 
+            bottom: 0; 
+            right: 0; 
+            width: 60px; 
+            height: 60px;
+            border-bottom: 1px solid rgba(193,160,103,0.15); 
+            border-right: 1px solid rgba(193,160,103,0.15);
+        }
+        .card-corner-tl {
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 60px; 
+            height: 60px;
+            border-top: 1px solid rgba(193,160,103,0.15); 
+            border-left: 1px solid rgba(193,160,103,0.15);
+        }
+        .level-badge { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 10px; 
+            margin-bottom: 22px; 
+        }
+        .level-num {
+            font-size: 0.65rem; 
+            letter-spacing: 0.3em; 
+            color: var(--gold-dim);
+            background: rgba(193,160,103,0.08); 
+            border: 1px solid rgba(193,160,103,0.2);
+            padding: 4px 12px; 
+            border-radius: 1px;
+        }
+        .level-title {
+            font-family: 'ZCOOL XiaoWei', serif; 
+            font-size: clamp(1.1rem, 3vw, 1.5rem);
+            color: var(--gold-light); 
+            line-height: 1.4; 
+            margin-bottom: 24px;
+            text-shadow: 0 0 20px var(--shadow-gold);
+        }
+        .media-box {
+            background: rgba(0,0,0,0.35); 
+            border: 1px solid rgba(193,160,103,0.12);
+            border-left: 3px solid rgba(193,160,103,0.35); 
+            padding: 20px 24px; 
+            margin-bottom: 24px;
+            border-radius: 1px;
+        }
+        .media-label {
+            font-size: 0.7rem; 
+            letter-spacing: 0.25em; 
+            color: var(--gold-dim);
+            margin-bottom: 10px; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+        }
+        .media-label::after { 
+            content: ''; 
+            flex: 1; 
+            height: 1px; 
+            background: rgba(193,160,103,0.1); 
+        }
+        .media-desc { 
+            font-size: 0.92rem; 
+            line-height: 1.8; 
+            color: var(--smoke); 
+        }
+        /* 新增视频容器样式 */
+        .video-container {
+            width: 100%;
+            margin: 16px 0 24px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(193,160,103,0.2);
+            display: none; /* 默认隐藏 */
+        }
+        .video-container.active {
+            display: block;
+            animation: fadeDown 0.5s ease both;
+        }
+        .video-container video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .thought-box {
+            background: rgba(193,160,103,0.04); 
+            border-left: 2px solid rgba(193,160,103,0.25);
+            padding: 16px 20px; 
+            margin-bottom: 28px;
+            border-radius: 1px;
+        }
+        .thought-label { 
+            font-size: 0.65rem; 
+            letter-spacing: 0.35em; 
+            color: var(--gold-dim); 
+            margin-bottom: 8px; 
+        }
+        .thought-text { 
+            font-size: 0.88rem; 
+            font-style: italic; 
+            line-height: 1.85; 
+            color: rgba(200,191,168,0.75); 
+        }
+        .question-text {
+            font-size: clamp(1rem, 2.5vw, 1.2rem); 
+            font-weight: 700; 
+            color: var(--paper);
+            line-height: 1.7; 
+            margin-bottom: 24px; 
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(193,160,103,0.1);
+        }
+        .choices-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 12px; 
+            margin-bottom: 18px; 
+        }
+        .choice-btn {
+            background: rgba(255,255,255,0.03); 
+            border: 1px solid rgba(193,160,103,0.2);
+            color: var(--cream); 
+            font-family: 'Noto Serif SC', serif;
+            font-size: 0.95rem; 
+            line-height: 1.5; 
+            padding: 14px 16px; 
+            text-align: left;
+            cursor: pointer; 
+            border-radius: 1px; 
+            transition: all var(--transition-base);
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+            animation: choiceIn 0.3s ease both;
+            min-height: 60px;
+        }
+        .choice-btn:nth-child(1) { animation-delay: 0.05s; }
+        .choice-btn:nth-child(2) { animation-delay: 0.10s; }
+        .choice-btn:nth-child(3) { animation-delay: 0.15s; }
+        .choice-btn:nth-child(4) { animation-delay: 0.20s; }
+        .choice-label {
+            font-family: 'ZCOOL XiaoWei', serif; 
+            font-size: 0.8rem; 
+            color: var(--gold-dim);
+            letter-spacing: 0.1em; 
+            min-width: 18px; 
+            padding-top: 1px; 
+            transition: color var(--transition-base);
+            font-weight: 600;
+        }
+        .choice-btn:hover:not(:disabled) { 
+            border-color: rgba(193,160,103,0.5); 
+            background: rgba(193,160,103,0.07); 
+            color: var(--paper); 
+            transform: translateY(-2px);
+        }
+        .choice-btn:hover:not(:disabled) .choice-label { 
+            color: var(--gold); 
+        }
+        .choice-btn:disabled { 
+            cursor: default; 
+        }
+        .choice-btn.correct { 
+            border-color: rgba(100,200,120,0.6); 
+            background: rgba(100,200,120,0.08); 
+            color: var(--success); 
+        }
+        .choice-btn.correct .choice-label { 
+            color: var(--success); 
+        }
+        .choice-btn.wrong { 
+            border-color: rgba(220,80,80,0.4); 
+            background: rgba(220,80,80,0.07); 
+            color: rgba(200,191,168,0.4); 
+        }
+        .choice-btn.wrong .choice-label { 
+            color: var(--error); 
+        }
+        .choice-btn.dimmed { 
+            opacity: 0.35; 
+            cursor: default; 
+        }
+        .feedback { 
+            min-height: 28px; 
+            font-size: 0.88rem; 
+            transition: all var(--transition-base); 
+            padding: 8px 4px; 
+            border-radius: 1px;
+            line-height: 1.8;
+        }
+        .feedback.success { 
+            color: var(--success); 
+            background: rgba(126, 203, 133, 0.05);
+        }
+        .feedback.error { 
+            color: var(--error); 
+            background: rgba(224, 112, 112, 0.05);
+        }
+        #ending-screen { 
+            display: none; 
+            text-align: center; 
+            padding: clamp(40px, 10vw, 60px) clamp(10px, 2vw, 20px);
+            animation: fadeDown 0.8s ease both;
+        }
+        .ending-seal {
+            width: clamp(80px, 15vw, 100px); 
+            height: clamp(80px, 15vw, 100px); 
+            border: 2px solid var(--gold-dim);
+            border-radius: 50%; 
+            margin: 0 auto 30px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            font-size: clamp(1.8rem, 5vw, 2.5rem); 
+            animation: pulse 2s ease infinite;
+        }
+        .ending-title { 
+            font-family: 'Ma Shan Zheng', cursive; 
+            font-size: clamp(1.8rem, 5vw, 2.2rem); 
+            color: var(--gold); 
+            margin-bottom: 24px; 
+            text-shadow: 0 0 30px var(--shadow-gold); 
+        }
+        .ending-body { 
+            font-size: 1rem; 
+            line-height: 2; 
+            color: var(--smoke); 
+            max-width: 540px; 
+            margin: 0 auto 30px;
+            text-align: left;
+            padding: 0 10px;
+        }
+        .restart-btn {
+            background: transparent; 
+            border: 1px solid rgba(201,168,76,0.4); 
+            color: var(--gold);
+            font-family: 'ZCOOL XiaoWei', serif; 
+            font-size: 1rem; 
+            letter-spacing: 0.3em;
+            padding: 14px 40px; 
+            cursor: pointer; 
+            border-radius: 1px; 
+            transition: all var(--transition-base);
+            min-height: 50px;
+            min-width: 200px;
+        }
+        .restart-btn:hover { 
+            background: rgba(201,168,76,0.1); 
+            border-color: var(--gold);
+            transform: translateY(-2px);
+        }
+        @keyframes fadeDown { 
+            from { opacity:0; transform:translateY(-16px); } 
+            to { opacity:1; transform:translateY(0); } 
+        }
+        @keyframes cardIn  { 
+            from { opacity:0; transform:translateY(20px);  } 
+            to { opacity:1; transform:translateY(0); } 
+        }
+        @keyframes pulse   { 
+            0%,100% { box-shadow:0 0 0 0 rgba(201,168,76,0.15); } 
+            50% { box-shadow:0 0 0 12px rgba(201,168,76,0); } 
+        }
+        @keyframes choiceIn{ 
+            from { opacity:0; transform:translateX(-10px); } 
+            to { opacity:1; transform:translateX(0); } 
+        }
+        @media (max-width: 520px) { 
+            .card { 
+                padding: 24px 20px; 
+            } 
+            .choices-grid { 
+                grid-template-columns: 1fr; 
+            }
+            .header-ornament {
+                gap: 8px;
+                font-size: 0.6rem;
+            }
+            .header-ornament::before,
+            .header-ornament::after {
+                max-width: 80px;
+            }
+            .ending-body {
+                text-align: center;
+            }
+        }
+        .choice-btn:focus-visible,
+        .restart-btn:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
+        }
+        [hidden] {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="seal-bg"></div>
+    <div id="app">
+        <header class="site-header">
+            <div class="eyebrow">战国考古探索之旅</div>
+            <h1>战国遗梦<br>探秘&#8220;第八雄&#8221;中山国</h1>
+            <div class="header-ornament">共十关</div>
+        </header>
+        <div class="progress-container">
+            <div class="progress-label" id="progress-label">第 1 关 / 共 10 关</div>
+            <div class="progress-track" id="progress-track"></div>
+        </div>
+        <div id="level-content"></div>
+        <div id="ending-screen">
+            <div class="ending-seal">&#128220;</div>
+            <div class="ending-title">通关成功</div>
+            <p class="ending-body">
+                随着&#8220;赵武灵王&#8221;四个字的输入，时空隧道再次开启。
+                历史的烽烟散去，那些精美的错金银文物、修长的中山篆、不屈的千乘之国，
+                都化作了你带回现代的珍贵考古记录。<br><br>
+                恭喜你，伟大的考古学家，你揭开了中山国的神秘面纱！
+            </p>
+            <button class="restart-btn" onclick="restartGame()">重新体验</button>
+        </div>
+    </div>
+    <script>
+        'use strict';
+
+        const CONFIG = {
+            LABELS: ['A','B','C','D'],
+            LEVEL_COUNT: 10,
+            DELAY_NEXT_LEVEL: 1800,
+            DELAY_RESET_CHOICE: 2200,
+            // 新增：各关卡对应的视频链接（你可自行替换）
+            VIDEO_LINKS: [
+                '../assets/videos/2c05c46d83da0c14cc7a4261396ff964.mp4',   // 第一关视频
+                'video2.mp4',   // 第二关视频
+                'video3.mp4',   // 第三关视频
+                'video4.mp4',   // 第四关视频
+                'video5.mp4',   // 第五关视频
+                'video6.mp4',   // 第六关视频
+                'video7.mp4',   // 第七关视频
+                'video8.mp4',   // 第八关视频
+                'video9.mp4',   // 第九关视频
+                'video10.mp4'   // 第十关视频
+            ]
+        };
+
+        const levels = [
+            { 
+                num:'第一关', 
+                emoji:'&#128737;&#65039;',
+                title:'风起北方 —— 寻根溯源',
+                mediaLabel:'&#9654; 视频演示（3D动画）',
+                mediaDesc:'茫茫草原上，一支游牧民族驱赶着牛羊，逐渐向太行山麓迁徙，最终建立城邦，与中原农耕文明发生碰撞。',
+                thought:'战国七雄大多是华夏族建立的，但中山国却显得与众不同，他们保留了尚武和游牧的习俗。视频中的民族是从北方迁徙而来的&#8220;狄&#8221;人的一支。',
+                question:'建立中山国这个神秘国度的是哪一个少数民族？',
+                choices:['白狄（鲜虞）','匈奴','东胡','羌族'],
+                answer:0,
+                ok:'&#9989; 答对了！获得线索&#8220;白狄之风&#8221;，解锁第 2 关。'
+            },
+            { 
+                num:'第二关', 
+                emoji:'&#127963;&#65039;',
+                title:'定鼎之都 —— 繁华初现',
+                mediaLabel:'&#128247; 图片对比（航拍图与CG复原图）',
+                mediaDesc:'画面左侧是河北省平山县三汲乡的现代风貌，右侧是通过CG技术复原的拥有高大夯土城墙和壮丽宫殿的战国都城。',
+                thought:'中山国在经历了魏文侯的灭国与后来的复国后，将都城迁到了一个水草丰美、依山傍水的地方，也就是图片中今天河北平山县所在的位置。',
+                question:'中山国复国后，达到鼎盛时期的都城叫什么名字？',
+                choices:['邯郸','灵寿','中牟','顾城'],
+                answer:1,
+                ok:'&#9989; 答对了！城门缓缓打开，你进入了都城，解锁第 3 关。'
+            },
+            { 
+                num:'第三关', 
+                emoji:'&#9876;&#65039;',
+                title:'强敌环伺 —— 军事密码',
+                mediaLabel:'&#9654; 视频演示（战局沙盘推演）',
+                mediaDesc:'中原大地上，赵、魏、燕将一个小国团团包围。然其拥有上千辆战车，士兵骁勇善战，屡败强敌。',
+                thought:'在冷兵器时代，战车数量衡量国力。大国称&#8220;万乘之国&#8221;，中山国虽小，战车配置却仅次于七雄。',
+                question:'因为军事实力强悍，中山国在历史上被称为什么？',
+                choices:['百乘之国','千乘之国（第八雄）','万乘之国','铁骑之国'],
+                answer:1,
+                ok:'&#9989; 答对了！战车轰鸣，你获得了中山军的认可，解锁第 4 关。'
+            },
+            { 
+                num:'第四关', 
+                emoji:'&#128305;',
+                title:'王权象征 —— 神秘图腾',
+                mediaLabel:'&#128247; 图片特写（青铜器）',
+                mediaDesc:'一件高约一米、底部有方銎的青铜器。顶部造型像一个巨大的、锋利的汉字&#8220;山&#8221;字。',
+                thought:'出土于中山王墓，常作仪仗兵器或帐篷支架顶部。造型威严，直接呼应了国号。',
+                question:'这件极具代表性、代表中山国君王权威的青铜礼器叫什么名字？',
+                choices:['三足金乌器','山字形器','凤鸟方尊','牛首铜鼎'],
+                answer:1,
+                ok:'&#9989; 答对了！你拔出了山字形器，王陵的密室显现，解锁第 5 关。'
+            },
+            { 
+                num:'第五关', 
+                emoji:'&#128009;',
+                title:'巧夺天工 —— 错金银之美',
+                mediaLabel:'&#9654; 视频演示（文物细节旋转展示）',
+                mediaDesc:'底座由四鹿承托的青铜小桌案，四龙盘绕，龙角和鳞片用黄金和白银镶嵌，龙身间有四只展翅凤凰。',
+                thought:'这是中山国工艺的巅峰。游牧民族的灵动结合了&#8220;错金银&#8221;工艺（刻槽、嵌入金银丝、打磨）。',
+                question:'这件国宝级文物的全称是什么？',
+                choices:['鎏金铜鹿案','错金银四龙四凤方案','嵌玉双凤铜方壶','彩绘虎纹铜案'],
+                answer:1,
+                ok:'&#9989; 答对了！机关转动，案几上浮现出一张地图，解锁第 6 关。'
+            },
+            { 
+                num:'第六关', 
+                emoji:'&#128506;&#65039;',
+                title:'千古奇图 —— 王陵规划',
+                mediaLabel:'&#128247; 图片展示（长方形铜版）',
+                mediaDesc:'铜版上用金银丝镶嵌着复杂的线条和文字，是一张精密的工程图纸，标注了陵墓尺寸、宫室位置。',
+                thought:'这是目前世界上现存最早的、按比例绘制的建筑平面图，体现极高数学与建筑学造诣。',
+                question:'这幅刻在铜版上的&#8220;最古老建筑平面图&#8221;叫什么？',
+                choices:['山陵规制图','兆域图','宫城全舆图','陵邑地理志'],
+                answer:1,
+                ok:'&#9989; 答对了！按图索骥，你避开了陵墓陷阱，解锁第 7 关。'
+            },
+            { 
+                num:'第七关', 
+                emoji:'&#129409;',
+                title:'图腾神兽 —— 异域风情',
+                mediaLabel:'&#128247; 图片特写（青铜神兽）',
+                mediaDesc:'张口怒吼，身躯似豹，长着长长翅膀。体表用银线错出华丽斑纹，原为压席子的&#8220;席镇&#8221;。',
+                thought:'带翼神兽受中亚或草原文化影响，体现了中山国吸收外来文化的包容性。',
+                question:'这件融合了草原与中原工艺的神兽文物叫什么？',
+                choices:['伏虎铜镇','双翼神兽','错银豹形尊','鎏金飞鹰器'],
+                answer:1,
+                ok:'&#9989; 答对了！神兽为你让开道路，你来到了主墓室，解锁第 8 关。'
+            },
+            { 
+                num:'第八关', 
+                emoji:'&#127994;',
+                title:'铭记历史 —— 鼎中长歌',
+                mediaLabel:'&#9654; 视频演示（微距镜头扫过青铜鼎）',
+                mediaDesc:'鼎腹刻有修长的中山篆，记载伐燕功绩，足足469字。底部露出黑色的铁足。',
+                thought:'史书对中山国记载极少，这件文物填补了历史空白。铜身铁足说明掌握了先进冶铁技术。',
+                question:'这件刻有长篇铭文、证明中山王身份的重器叫什么名字？',
+                choices:['铁足铜鼎','大盂铜鼎','毛公鼎','中山王方鼎'],
+                answer:0,
+                ok:'&#9989; 答对了！鼎中散发出奇异的酒香，解锁第 9 关。'
+            },
+            { 
+                num:'第九关', 
+                emoji:'&#127863;',
+                title:'名扬天下 —— 醉梦千日',
+                mediaLabel:'&#128247; 图片拼接（古籍与酒液）',
+                mediaDesc:'左边是《搜神记》书页，右边是考古发掘时从青铜壶中倒出的清澈液体。',
+                thought:'相传战国时有一种美酒，刘玄石喝后醉了三年（一千天），这个传说就源自中山国。',
+                question:'传说中这闻名天下的中山国特产叫什么？',
+                choices:['杜康美酒','千日酒','竹叶青','醴泉玉液'],
+                answer:1,
+                ok:'&#9989; 答对了！饮下这杯穿越时空的酒，你看到了中山国的结局，解锁第 10 关。'
+            },
+            { 
+                num:'第十关', 
+                emoji:'&#127993;',
+                title:'帝国落幕 —— 强兵之策',
+                mediaLabel:'&#9654; 视频演示（战争场景）',
+                mediaDesc:'一支穿着胡人短打服饰、骑着快马的军队，击溃了中山国的战车阵型。中山国最终走向了覆灭。',
+                thought:'中山国将赵国分为南北两半。赵国君王推行了一场著名的军事改革，最终彻底灭亡了中山国。',
+                question:'是赵国的哪位君王，通过推行&#8220;胡服骑射&#8221;改革，最终消灭了中山国？',
+                choices:['赵惠文王','赵孝成王','赵武灵王','赵肃侯'],
+                answer:2,
+                ok:'&#9989; 时空通道开启，准备返回现代……'
+            }
+        ];
+
+        let currentLevel = 0;
+        let isAnswered = false;
+        let currentVideo = null; // 保存当前播放的视频实例
+
+        const elements = {
+            progressLabel: document.getElementById('progress-label'),
+            progressTrack: document.getElementById('progress-track'),
+            levelContent: document.getElementById('level-content'),
+            endingScreen: document.getElementById('ending-screen'),
+        };
+
+        function buildProgress() {
+            elements.progressTrack.innerHTML = '';
+            
+            for (let i = 0; i < CONFIG.LEVEL_COUNT; i++) {
+                const step = document.createElement('div');
+                step.className = `progress-step ${i < currentLevel ? 'done' : i === currentLevel ? 'active' : ''}`;
+                elements.progressTrack.appendChild(step);
+            }
+            
+            elements.progressLabel.textContent = `第 ${currentLevel + 1} 关 / 共 ${CONFIG.LEVEL_COUNT} 关`;
+        }
+
+        function renderLevel() {
+            // 停止上一个视频播放
+            if (currentVideo) {
+                currentVideo.pause();
+                currentVideo = null;
+            }
+
+            if (currentLevel >= CONFIG.LEVEL_COUNT) {
+                elements.levelContent.hidden = true;
+                elements.endingScreen.style.display = 'block';
+                elements.progressLabel.hidden = true;
+                elements.progressTrack.hidden = true;
+                return;
+            }
+
+            isAnswered = false;
+            buildProgress();
+
+            const level = levels[currentLevel];
+            let choicesHtml = '';
+
+            level.choices.forEach((choice, index) => {
+                choicesHtml += `
+                    <button class="choice-btn" id="cb${index}" onclick="pick(${index})">
+                        <span class="choice-label">${CONFIG.LABELS[index]}</span>
+                        <span>${choice}</span>
+                    </button>
+                `;
+            });
+
+            // 新增视频容器到页面中
+            elements.levelContent.innerHTML = `
+                <div class="card">
+                    <div class="card-corner-tl"></div>
+                    <div class="level-badge">
+                        <span class="level-num">${level.emoji} ${level.num}</span>
+                    </div>
+                    <div class="level-title">${level.title}</div>
+                    <div class="media-box">
+                        <div class="media-label">${level.mediaLabel}</div>
+                        <div class="media-desc">${level.mediaDesc}</div>
+                    </div>
+                    <!-- 新增视频容器 -->
+                    <div class="video-container" id="video-container">
+                        <video controls preload="none" id="level-video">
+                            <source src="${CONFIG.VIDEO_LINKS[currentLevel]}" type="video/mp4">
+                            您的浏览器不支持视频播放
+                        </video>
+                    </div>
+                    <div class="thought-box">
+                        <div class="thought-label">&#9672; 思考过程</div>
+                        <div class="thought-text">${level.thought}</div>
+                    </div>
+                    <div class="question-text">${level.question}</div>
+                    <div class="choices-grid">${choicesHtml}</div>
+                    <div class="feedback" id="fb"></div>
+                </div>
+            `;
+        }
+
+        function pick(index) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            const level = levels[currentLevel];
+            const feedbackEl = document.getElementById('fb');
+            const choiceBtns = document.querySelectorAll('.choice-btn');
+            const videoContainer = document.getElementById('video-container');
+            const video = document.getElementById('level-video');
+
+            choiceBtns.forEach(btn => btn.disabled = true);
+
+            // 显示并播放视频
+            videoContainer.classList.add('active');
+            currentVideo = video;
+            video.play().catch(err => {
+                console.log('视频自动播放失败:', err);
+                // 自动播放失败时，让用户手动点击播放
+                videoContainer.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: var(--gold-light);">
+                        <p>点击下方按钮播放视频</p>
+                        <button onclick="document.getElementById('level-video').play()" style="
+                            background: rgba(201,168,76,0.1);
+                            border: 1px solid var(--gold);
+                            color: var(--gold);
+                            padding: 8px 20px;
+                            margin-top: 10px;
+                            border-radius: 2px;
+                            cursor: pointer;
+                        ">播放视频</button>
+                        <video controls preload="none" id="level-video" style="display: none;">
+                            <source src="${CONFIG.VIDEO_LINKS[currentLevel]}" type="video/mp4">
+                            您的浏览器不支持视频播放
+                        </video>
+                    </div>
+                `;
+            });
+
+            if (index === level.answer) {
+                choiceBtns[index].classList.add('correct');
+                choiceBtns.forEach((btn, i) => {
+                    if (i !== index) btn.classList.add('dimmed');
+                });
+                
+                feedbackEl.className = 'feedback success';
+                feedbackEl.innerHTML = level.ok;
+
+                setTimeout(() => {
+                    currentLevel++;
+                    renderLevel();
+                }, CONFIG.DELAY_NEXT_LEVEL);
+            } 
+            else {
+                choiceBtns[index].classList.add('wrong');
+                choiceBtns[level.answer].classList.add('correct');
+                
+                choiceBtns.forEach((btn, i) => {
+                    if (i !== index && i !== level.answer) btn.classList.add('dimmed');
+                });
+                
+                feedbackEl.className = 'feedback error';
+                feedbackEl.textContent = '&#10060; 答案不对哦，正确答案已标出，再接再厉！';
+
+                setTimeout(() => {
+                    isAnswered = false;
+                    choiceBtns.forEach(btn => {
+                        btn.disabled = false;
+                        btn.classList.remove('correct', 'wrong', 'dimmed');
+                    });
+                    feedbackEl.className = 'feedback';
+                    feedbackEl.textContent = '';
+                }, CONFIG.DELAY_RESET_CHOICE);
+            }
+        }
+
+        function restartGame() {
+            // 停止视频播放
+            if (currentVideo) {
+                currentVideo.pause();
+                currentVideo = null;
+            }
+            
+            currentLevel = 0;
+            isAnswered = false;
+            
+            elements.endingScreen.style.display = 'none';
+            elements.progressLabel.hidden = false;
+            elements.progressTrack.hidden = false;
+            elements.levelContent.hidden = false;
+            
+            renderLevel();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.addEventListener('DOMContentLoaded', renderLevel);
+    </script>
+</body>
+</html>
